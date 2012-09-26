@@ -1,0 +1,15 @@
+#canvas {
+  border: 2px solid black;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#debug_container {
+  width: 720px;
+  height: 50px;
+  border: 1px solid red;
+  margin: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
