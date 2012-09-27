@@ -456,23 +456,23 @@ function positionTree(node)
     if (node.parent != null)
     {
       theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
-      node.out_parent_x = node.x + skew * Math.cos(theta);
-      node.out_parent_y = node.y + skew * Math.sin(theta);
-      node.in_parent_x = node.x - skew * Math.cos(theta);
-      node.in_parent_y = node.y - skew * Math.sin(theta);
+      node.out_parent_x = node.x + Math.cos(theta);
+      node.out_parent_y = node.y + Math.sin(theta);
+      node.in_parent_x = node.x - Math.cos(theta);
+      node.in_parent_y = node.y - Math.sin(theta);
     }
     
     theta = Math.atan2(node.right.y - node.y, node.right.x - node.x) + Math.PI/2;
-    node.out_right_x = node.x + skew * Math.cos(theta);
-    node.out_right_y = node.y + skew * Math.sin(theta);
-    node.in_right_x = node.x - skew * Math.cos(theta);
-    node.in_right_y = node.y - skew * Math.sin(theta);
+    node.out_right_x = node.x + Math.cos(theta);
+    node.out_right_y = node.y + Math.sin(theta);
+    node.in_right_x = node.x - Math.cos(theta);
+    node.in_right_y = node.y - Math.sin(theta);
 
     theta = Math.atan2(node.left.y - node.y, node.left.x - node.x) + Math.PI/2;
-    node.out_left_x = node.x + skew * Math.cos(theta);
-    node.out_left_y = node.y + skew * Math.sin(theta);
-    node.in_left_x = node.x - skew * Math.cos(theta);
-    node.in_left_y = node.y - skew * Math.sin(theta);
+    node.out_left_x = node.x + Math.cos(theta);
+    node.out_left_y = node.y + Math.sin(theta);
+    node.in_left_x = node.x - Math.cos(theta);
+    node.in_left_y = node.y - Math.sin(theta);
 /*
     var out_theta = Math.atan2((node.right.y + node.left.y)/2 - node.y, 
                                (node.right.x + node.left.x)/2 - node.x) + Math.PI/2;
@@ -485,10 +485,10 @@ function positionTree(node)
   // Leaf
   } else if (node.parent != null) {
     var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
-    node.out_parent_x = node.x + skew * Math.cos(theta);
-    node.out_parent_y = node.y + skew * Math.sin(theta);
-    node.in_parent_x = node.x - skew * Math.cos(theta);
-    node.in_parent_y = node.y - skew * Math.sin(theta);
+    node.out_parent_x = node.x + Math.cos(theta);
+    node.out_parent_y = node.y + Math.sin(theta);
+    node.in_parent_x = node.x - Math.cos(theta);
+    node.in_parent_y = node.y - Math.sin(theta);
 /*
     node.out_x = node.x + 1.5 * ANT_RADIUS * Math.cos(node.theta+(Math.PI/2));
     node.out_y = node.y + 1.5 * ANT_RADIUS * Math.sin(node.theta+(Math.PI/2));
