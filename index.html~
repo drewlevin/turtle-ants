@@ -4,10 +4,6 @@
   <title>Ant Simulation</title>
   <link href="ants.css" rel="stylesheet" type="text/css" />
   <script id="jquery" src="jquery-1.8.2.min.js" type="text/javascript"></script>
-  <script id="model" src="node.js" type="text/javascript"></script>
-  <script id="model" src="quad.js" type="text/javascript"></script>
-  <script id="model" src="nest.js" type="text/javascript"></script>
-  <script id="model" src="ant.js" type="text/javascript"></script>
   <script id="model" src="model.js" type="text/javascript"></script>
 </head>
 <body>

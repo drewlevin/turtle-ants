@@ -67,351 +67,6 @@ var food_node_b_path;
       };
 }())
 
-function Node(_parent, _depth, _isRight) 
-{
-  this.parent = _parent;
-  this.depth = _depth;
-  this.isRight = _isRight;
-  this.right = null;
-  this.left = null;
-
-  this.weight = 1;
-  this.width = 2 * Math.PI;
-  this.food = 0;
-  
-  this.foodColor = '#3A5';
-  
-  this.theta = 0;
-  this.x = (WIDTH/2);
-  this.y = (HEIGHT/2);
-
-  this.out_parent_x = WIDTH/2;
-  this.out_parent_y = HEIGHT/2;
-  this.out_right_x = WIDTH/2;
-  this.out_right_y = HEIGHT/2;
-  this.out_left_x = WIDTH/2;
-  this.out_left_y = HEIGHT/2;
-  this.in_parent_x = WIDTH/2;
-  this.in_parent_y = HEIGHT/2;
-  this.in_right_x = WIDTH/2;
-  this.in_right_y = HEIGHT/2;
-  this.in_left_x = WIDTH/2;
-  this.in_left_y = HEIGHT/2;
-
-  this.contains = function(_x, _y) 
-  {
-    return (Math.pow(this.x - _x, 2) + Math.pow(this.y - _y, 2) <= 
-      Math.pow(NODE_RADIUS, 2));
-  }
-
-  this.getPath = function() {
-    if (this.depth == 0) {
-      return [];
-    } else {
-      var parent_path = this.parent.getPath();
-      parent_path.push(this.isRight);
-      return parent_path;
-    }
-  }
-
-  this.drawTree = function(_ctx)
-  {
-    if (this.right != null)
-    {
-      _ctx.lineWidth = BRANCH_WIDTH;
-      _ctx.strokeStyle = "rgb(100, 80, 30)";
-      _ctx.beginPath();
-      _ctx.moveTo(this.x, this.y);
-      _ctx.lineTo(this.right.x, this.right.y);
-      _ctx.stroke();
-      this.right.drawTree(_ctx);
-    }
-    if (this.left != null)
-    {
-      _ctx.lineWidth = BRANCH_WIDTH;
-      _ctx.strokeStyle = "rgb(100, 80, 30)";
-      _ctx.beginPath();
-      _ctx.moveTo(this.x, this.y);
-      _ctx.lineTo(this.left.x, this.left.y);
-      _ctx.stroke();
-      this.left.drawTree(_ctx);
-    }
-    
-    _ctx.fillStyle = '#862';
-    _ctx.beginPath();
-    _ctx.arc(this.x, this.y, NODE_DRAW_RADIUS, 0, Math.PI*2, true); 
-    _ctx.closePath();
-    _ctx.fill();
-  }
-  
-  this.drawSelected = function(_ctx)
-  {
-    _ctx.fillStyle = '#B93';
-    _ctx.beginPath();
-    _ctx.arc(this.x, this.y, NODE_DRAW_RADIUS+5, 0, Math.PI*2, true); 
-    _ctx.closePath();
-    _ctx.fill();  
-  }
-
-  this.drawFood = function()
-  {
-    ctx.fillStyle = this.foodColor;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, NODE_DRAW_RADIUS + (this.food / (MAX_FOOD / FOOD_DRAW_RADIUS)), 0, Math.PI*2, true); 
-    ctx.closePath();
-    ctx.fill();  
-  }
-}
-
-function Quad(_x, _y, _w, _h)
-{
-  var nodes = [];
-  var children = null;
-  
-  var x = _x;
-  var y = _y;
-  var w = _w;
-  var h = _h;
-  
-  this.getChildren = function() {
-    return children;
-  }
-  
-  this.containsNode = function(node)
-  {
-    return (node.x+NODE_RADIUS > x && node.x-NODE_RADIUS < x+w &&
-            node.y+NODE_RADIUS > y && node.y-NODE_RADIUS < y+h);
-  }
-  
-  this.containsPoint = function(_x, _y)
-  {
-    return (_x > x && _x < x+w && _y > y && _y < y+h);
-  }
-  
-  this.addNode = function(node)
-  {
-    // Leaf quad, add a new node
-    if (children == null && nodes.length < NODE_LIMIT) {
-      nodes.push(node);
-    } 
-    // Expand leaf quad to branching quad
-    else if (children == null && w > 1) 
-    {
-      nodes.push(node);
-      children = [new Quad(x, y, w/2, h/2),
-                  new Quad(x+w/2, y, w/2, h/2),
-                  new Quad(x, y+h/2, w/2, h/2),
-                  new Quad(x+w/2, y+h/2, w/2, h/2)];
-
-      for (var n in nodes) {
-        for (var q in children) {
-          if (children[q].containsNode(nodes[n])) {
-            children[q].addNode(nodes[n]);
-          }
-        }
-      } 
-      nodes = [];
-    } 
-    // Branching quad, keep drilling down
-    else 
-    {
-      for (var q in children) {
-        if (children[q].containsNode(node)) {
-          children[q].addNode(node);
-        }
-      }
-    } 
-  }
-  
-  this.getNode = function(_x, _y)
-  {
-    if (children == null)
-    {
-      for (var n in nodes) {
-        if (nodes[n].contains(_x, _y)) {
-          return nodes[n];
-        }
-      }
-      return null;
-    }
-    else {
-      for (var q in children) {
-        if (children[q].containsPoint(_x, _y)) {
-          return children[q].getNode(_x, _y);
-        }
-      }
-      return null;
-    }
-  }
-}
-
-function Nest(_num_ants)
-{
-  var num_ants = _num_ants;
-  
-  this.getNum = function() { return num_ants; }
-  
-  this.update = function()
-  {
-    if (Math.random() < LEAVE_PROB * num_ants) {
-      if (Math.random() < .5) {
-        tree_ants.push(new Ant(food_node_a));
-      } else {
-        tree_ants.push(new Ant(food_node_b));
-      }
-      num_ants--;        
-    }
-  }
-  
-  this.draw = function()
-  {
-    ctx.fillStyle = '#863';
-    ctx.beginPath();
-    ctx.arc(WIDTH/2, HEIGHT/2, NEST_RADIUS, 0, Math.PI*2, true); 
-    ctx.closePath();
-    ctx.fill();  
-    
-    ctx.fillStyle = '#222';
-    ctx.font = 'bold 20px ariel';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(num_ants, WIDTH/2 + NEST_RADIUS + 10, HEIGHT/2);
-
-  }
-  
-  this.returnHome = function()
-  {
-    num_ants++;
-  }
-}
-
-function Ant(_dest)
-{
-  var path = (_dest == null) ? [] : _dest.getPath().slice(0);
-  var origin = root;
-  var dest = root;
-  var dist = 0;
-  var node_index = 0;
-  var returning = false;
-  var first = (_dest == null);
-
-  this.found_food = false;
-  this.color = (_dest.food > 0) ? _dest.foodColor : '#333';
-  
-  if (first)
-  {
-    var d = Math.random() < .5;
-    dest = d ? root.left : root.right;
-    path.push(d);
-  } else {
-    dest = path[dest.depth] ? dest.right : dest.left;
-  }
-  
-  var x, y;
-
-  this.update = function() 
-  {
-    dist += ANT_SPEED;
-
-    // Searching Ants
-    if (!returning) {    
-      if (dest.isRight) {
-        x = origin.out_right_x + dist * (dest.out_parent_x - origin.out_right_x);
-        y = origin.out_right_y + dist * (dest.out_parent_y - origin.out_right_y);
-      } else {
-        x = origin.out_left_x + dist * (dest.out_parent_x - origin.out_left_x);
-        y = origin.out_left_y + dist * (dest.out_parent_y - origin.out_left_y);
-      }
-      // At Node
-      if (dist >= 1) {
-        // Branch Node
-        if (dest.right != null) {
-          origin = dest;
-          if (first) {
-            var d = Math.random() < .5;
-            dest = d ? dest.right : dest.left;
-            path.push(d);
-          } else {
-            if (Math.random() < SWITCH_PATH) {
-              first = true;
-              path.splice(dest.depth, path.length - dest.depth - 1);
-              var d = Math.random() < .5;
-              dest = d ? dest.right : dest.left;
-              path.push(d);              
-            } else {
-              dest = path[dest.depth] ? dest.right : dest.left;
-            }
-          }      
-        // Turn around   
-        } else { 
-          if (dest.food > 0) {
-            this.found_food = true;
-            dest.food--;           
-            this.color = dest.foodColor;
-          } else {
-            this.found_food = false;
-            this.color = '#333';
-          }
-        
-          returning = true;
-          first = false;
-          
-          var temp_origin = dest;
-          dest = origin;
-          origin = temp_origin;
-          dist = 0;
-          return false;
-        }
-        dist = 0;
-      }
-    // Returning Ants
-    } else {
-      if (origin.isRight) {
-        x = origin.in_parent_x + dist * (dest.in_right_x - origin.in_parent_x);
-        y = origin.in_parent_y + dist * (dest.in_right_y - origin.in_parent_y);
-      } else {
-        x = origin.in_parent_x + dist * (dest.in_left_x - origin.in_parent_x);
-        y = origin.in_parent_y + dist * (dest.in_left_y - origin.in_parent_y);
-      }
-      if (dist >= 1) {
-        if (dest.parent != null) {
-          origin = dest;
-          dest = dest.parent;
-        } else {
-          if (Math.random() < STOP_SEARCHING)
-          {
-            nest.returnHome();
-            return true;
-          } else {
-            origin = root;
-            returning = false;
-            dist = 0;
-            if (Math.random() < SWITCH_PATH) {
-              first = true;
-              path = [];
-              var d = Math.random() < .5;
-              dest = d ? root.right : root.left;
-              path.push(d);                            
-            } else {
-              dest = path[0] ? root.right : root.left;
-            }
-          }
-          return false;
-        }
-        dist = 0;
-      }
-    }
-    return false;
-  }
-  
-  this.draw = function()
-  {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(x, y, ANT_RADIUS, 0, Math.PI*2, true); 
-    ctx.closePath();
-    ctx.fill();
-  }
-}
 
 function buildTree(node, depth)
 {
@@ -517,12 +172,14 @@ function mouseMove(e)
 function update()
 {
   nest.update();
+  root.update();
 
   for (a in tree_ants) {
     if (tree_ants[a].update()) {
       tree_ants.splice(a, 1);
     }
   }
+
   setTimeout(update, 16);
 }
 
@@ -535,18 +192,20 @@ function render()
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.drawImage(static_canvas, 0, 0);
 
-  for (n in food_nodes) {
-    food_nodes[n].drawFood();
-  }
+//  for (n in food_nodes) {
+//    food_nodes[n].draw();
+//  }
+
+  root.draw();
   
   if (hover_node != null)
     hover_node.drawSelected(ctx);
-
-  nest.draw();
     
   for (a in tree_ants) {
     tree_ants[a].draw();
   }
+
+  nest.draw();
 }
 
 function init()
