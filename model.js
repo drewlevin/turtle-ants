@@ -8,7 +8,7 @@ var NODE_RADIUS = 7;
 var ANT_RADIUS = 2;
 var BRANCH_WIDTH = 3;
 var NODE_DRAW_RADIUS = 4;
-var NEST_RADIUS = 15;
+var NEST_RADIUS = 8;
 var FOOD_DRAW_RADIUS = 3;
 
 var NODE_LIMIT = 3;
@@ -19,6 +19,7 @@ var LEAVE_PROB = 0.001;
 var STOP_SEARCHING = 0.0001;
 var SWITCH_PATH = 0.003;
 var FOOD_PROB = 0.35;
+var PHEROMONE_DECAY = 0.999;
 var MAX_FOOD = 1000;
 var NEST_ANTS = 1000;
 
@@ -151,6 +152,18 @@ function positionTree(node)
     node.in_y = node.y + 1.5 * ANT_RADIUS * Math.sin(node.theta-(Math.PI/2));
 */
   }
+
+  if (node.parent != null) {
+    var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+    if (node.isRight) {
+      node.text_x = (node.x + node.parent.x) / 2 - (3 * skew * Math.cos(theta));
+      node.text_y = (node.y + node.parent.y) / 2 - (3 * skew * Math.sin(theta));
+    } else {
+      node.text_x = (node.x + node.parent.x) / 2 + (2 * skew * Math.cos(theta));
+      node.text_y = (node.y + node.parent.y) / 2 + (2 * skew * Math.sin(theta));
+    }
+  }
+
   picker.addNode(node);
 }
 
@@ -208,6 +221,23 @@ function render()
   nest.draw();
 }
 
+function init_pheromones(amount, node, path)
+{
+  if (node.right != null && node.left != null) {
+    if (path[0]) {
+      node.right.pheromone = amount;
+      if (node.right != null) {
+        init_pheromones(amount, node.right, path.splice(1, path.length - 1));
+      }
+    } else {
+      node.left.pheromone = amount;
+      if (node.left != null) {
+        init_pheromones(amount, node.left, path.splice(1, path.length - 1));
+      }
+    }
+  }
+}
+
 function init()
 {
   picker = new Quad(0, 0, WIDTH, HEIGHT);
@@ -221,6 +251,9 @@ function init()
   food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
   food_node_a.foodColor = '#C22';
   food_node_b.foodColor = '#22C';
+
+  init_pheromones(2000, root, food_node_a.getPath());
+  init_pheromones(2000, root, food_node_b.getPath());
 
   nest = new Nest(NEST_ANTS);
 

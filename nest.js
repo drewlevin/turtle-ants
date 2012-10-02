@@ -7,12 +7,16 @@ function Nest(_num_ants)
   this.update = function()
   {
     if (Math.random() < LEAVE_PROB * num_ants) {
+      /*
       if (Math.random() < .5) {
         tree_ants.push(new Ant(food_node_a));
       } else {
         tree_ants.push(new Ant(food_node_b));
       }
       num_ants--;        
+    } */
+      tree_ants.push(new Ant());
+      num_ants--;
     }
   }
   

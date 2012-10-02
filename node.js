@@ -10,12 +10,15 @@ function Node(_parent, _depth, _isRight)
   this.width = 2 * Math.PI;
   this.food = 0;
   this.pheromone = 0;
+  this.ants = 0;
 
   this.foodColor = '#3A5';
   
   this.theta = 0;
   this.x = (WIDTH/2);
   this.y = (HEIGHT/2);
+  this.text_x = this.x;
+  this.text_y = this.y;
 
   this.out_parent_x = WIDTH/2;
   this.out_parent_y = HEIGHT/2;
@@ -49,7 +52,7 @@ function Node(_parent, _depth, _isRight)
   this.update = function()
   {
     if (this.pheromone > 0) {
-      this.pheromone = this.pheromone * 0.975;
+      this.pheromone = this.pheromone * PHEROMONE_DECAY;
     }
 
     if (this.right != null && this.left != null) {
@@ -121,6 +124,11 @@ function Node(_parent, _depth, _isRight)
       ctx.lineTo(this.parent.x, this.parent.y);
       ctx.stroke();
     }
+
+    ctx.fillStyle = '#777';
+    ctx.font = 'bold 14px ariel';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.ants, this.text_x, this.text_y);
 
     if (this.right != null && this.left != null) {
       this.right.draw();
