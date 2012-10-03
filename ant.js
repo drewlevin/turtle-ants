@@ -1,6 +1,7 @@
 function sense(p)
 {
-    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1;
+    //return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1;
+    return ((-1/(1+Math.pow(2,-.001*(p-25000))))+1)*p+1;
 }
 
 function Ant(_dest)

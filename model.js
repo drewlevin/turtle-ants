@@ -17,7 +17,7 @@ var ANT_SPEED = 0.01;
 var CHILD_PROB = 0.60;
 var LEAVE_PROB = 0.001;
 var STOP_SEARCHING = 0.0001;
-var SWITCH_PATH = 0.003;
+var SWITCH_PATH = 1.00;
 var FOOD_PROB = 0.35;
 var PHEROMONE_DECAY = 0.999;
 var MAX_FOOD = 1000;
@@ -175,11 +175,6 @@ function mouseMove(e)
   var y = e.pageY - off.top;
 
   hover_node = picker.getNode(x, y);
-  
-  $('#debug').text("Client: " + e.clientX + ", " + e.clientY + "        " +
-                   "Page: " + e.pageX + ", " + e.pageY + "        " +
-                   "Canvas: " + x + ", " + y);
-
 }
 
 function update()
@@ -273,7 +268,7 @@ $(document).ready(function() {
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
   
-  $('#canvas').mousemove(function(e) { mouseMove(e); });
+//  $('#canvas').mousemove(function(e) { mouseMove(e); });
 
   init();
 
