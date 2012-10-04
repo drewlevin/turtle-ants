@@ -16,12 +16,16 @@ var NODE_LIMIT = 3;
 var ANT_SPEED = 0.01;
 var CHILD_PROB = 0.60;
 var LEAVE_PROB = 0.001;
-var STOP_SEARCHING = 0.0001;
-var SWITCH_PATH = 1.00;
+var STOP_SEARCHING = 0.0000;
+var SWITCH_PATH = 0.001;
 var FOOD_PROB = 0.35;
 var PHEROMONE_DECAY = 0.999;
 var MAX_FOOD = 1000;
 var NEST_ANTS = 1000;
+
+var PHEROMONE = false;
+var INITIAL_PATH = true;
+var SHOW_ANT_COUNT = false;
 
 var l = 35;
 
@@ -208,7 +212,7 @@ function render()
   
   if (hover_node != null)
     hover_node.drawSelected(ctx);
-    
+
   for (a in tree_ants) {
     tree_ants[a].draw();
   }
@@ -247,8 +251,10 @@ function init()
   food_node_a.foodColor = '#C22';
   food_node_b.foodColor = '#22C';
 
-  init_pheromones(2000, root, food_node_a.getPath());
-  init_pheromones(2000, root, food_node_b.getPath());
+  if (PHEROMONE) {
+    init_pheromones(2000, root, food_node_a.getPath());
+    init_pheromones(2000, root, food_node_b.getPath());
+  }
 
   nest = new Nest(NEST_ANTS);
 

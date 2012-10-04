@@ -17,10 +17,15 @@ function Ant(_dest)
   this.color = (_dest != null) ? ((_dest.food > 0) ? _dest.foodColor : '#333') : '#333';
   
   if (first)
-  {
-    var r = sense(dest.right.pheromone);
-    var l = sense(dest.left.pheromone);
-    var d = Math.random() < r / (r + l);
+  { 
+    var d;
+    if (PHEROMONE) {
+      var r = sense(dest.right.pheromone);
+      var l = sense(dest.left.pheromone);
+      d = Math.random() < r / (r + l);
+    } else {
+      d = Math.random() < 0.5;
+    }
     dest = d ? dest.right : dest.left;
     path.push(d);
   } else {
@@ -51,23 +56,33 @@ function Ant(_dest)
           dest.ants = dest.ants - 1;
           origin = dest;
           if (first) {
-            var r = sense(dest.right.pheromone);
-            var l = sense(dest.left.pheromone);
-            var d = Math.random() < r / (r + l);
+            var d;
+            if (PHEROMONE) {
+              var r = sense(dest.right.pheromone);
+              var l = sense(dest.left.pheromone);
+              d = Math.random() < r / (r + l);
+            } else {
+              d = Math.random() < 0.5;
+            }
             dest = d ? dest.right : dest.left;
             path.push(d);
           } else {
-//            if (Math.random() < SWITCH_PATH) {
+            if (Math.random() < SWITCH_PATH) {
               first = true;
               path.splice(dest.depth, path.length - dest.depth - 1);
-              var r = sense(dest.right.pheromone);
-              var l = sense(dest.left.pheromone);
-              var d = Math.random() < r / (r + l);
+              var d;
+              if (PHEROMONE) {
+                var r = sense(dest.right.pheromone);
+                var l = sense(dest.left.pheromone);
+                d = Math.random() < r / (r + l);
+              } else {
+                d = Math.random() < 0.5;
+              }
               dest = d ? dest.right : dest.left;
               path.push(d);              
-//            } else {
-//              dest = path[dest.depth] ? dest.right : dest.left;
-//            }
+            } else {
+              dest = path[dest.depth] ? dest.right : dest.left;
+            }
           } 
           dest.ants = dest.ants + 1;     
         // Turn around   
@@ -76,13 +91,14 @@ function Ant(_dest)
             this.found_food = true;
             dest.food--;           
             this.color = dest.foodColor;
+            first = false;
           } else {
             this.found_food = false;
             this.color = '#333';
+            first = true;
           }
         
           returning = true;
-          first = false;
           
           var temp_origin = dest;
           dest = origin;
@@ -94,7 +110,7 @@ function Ant(_dest)
       }
     // Returning Ants
     } else {
-      if (this.found_food) {
+      if (PHEROMONE && this.found_food) {
         origin.pheromone = origin.pheromone + 1;
       }
 
@@ -121,10 +137,17 @@ function Ant(_dest)
             origin = root;
             returning = false;
             dist = 0;
-            if (Math.random() < SWITCH_PATH) {
+            if (Math.random() < SWITCH_PATH || first) {
               first = true;
               path = [];
-              var d = Math.random() < .5;
+              var d;
+              if (PHEROMONE) {
+                var r = sense(root.right.pheromone);
+                var l = sense(root.left.pheromone);
+                d = Math.random() < r / (r + l);
+              } else {
+                d = Math.random() < 0.5;
+              }
               dest = d ? root.right : root.left;
               path.push(d);                            
             } else {

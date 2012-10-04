@@ -51,7 +51,7 @@ function Node(_parent, _depth, _isRight)
 
   this.update = function()
   {
-    if (this.pheromone > 0) {
+    if (PHEROMONE && this.pheromone > 0) {
       this.pheromone = this.pheromone * PHEROMONE_DECAY;
     }
 
@@ -102,15 +102,7 @@ function Node(_parent, _depth, _isRight)
 
   this.draw = function()
   {
-    if (this.food > 0) {
-      ctx.fillStyle = this.foodColor;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, NODE_DRAW_RADIUS + (this.food / (MAX_FOOD / FOOD_DRAW_RADIUS)), 0, Math.PI*2, true); 
-      ctx.closePath();
-      ctx.fill();  
-    }
-
-    if (this.pheromone > 0) {
+    if (PHEROMONE && this.pheromone > 0) {
       
       var scale = Math.log(this.pheromone) / Math.log(10);
       scale = Math.max(Math.min(scale, 3.5), 0.0) / 3.5;
@@ -125,10 +117,20 @@ function Node(_parent, _depth, _isRight)
       ctx.stroke();
     }
 
-    ctx.fillStyle = '#777';
-    ctx.font = 'bold 14px ariel';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.ants, this.text_x, this.text_y);
+    if (this.food > 0) {
+      ctx.fillStyle = this.foodColor;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, NODE_DRAW_RADIUS + (this.food / (MAX_FOOD / FOOD_DRAW_RADIUS)), 0, Math.PI*2, true); 
+      ctx.closePath();
+      ctx.fill();  
+    }
+
+    if (SHOW_ANT_COUNT) {
+      ctx.fillStyle = '#777';
+      ctx.font = 'bold 14px ariel';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(this.ants, this.text_x, this.text_y);
+    }
 
     if (this.right != null && this.left != null) {
       this.right.draw();
