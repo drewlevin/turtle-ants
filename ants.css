@@ -1,8 +1,23 @@
-#canvas {
-  border: 2px solid black;
+#main_container {
   display: block;
+  width: 960px;
   margin-left: auto;
   margin-right: auto;
+}
+
+#canvas {
+  border: 2px solid black;
+  display: inline-block;
+  margin: 0px;
+}
+
+#controls {
+  height: 720px;
+  width: 220px;
+  border: 2px solid green;
+  margin: 0px;
+  display: inline-block;
+  vertical-align: top;
 }
 
 #debug_container {
@@ -13,3 +28,66 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+ul {
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+} 
+
+li {
+  list-style: none;
+  font-weight: normal;
+  
+}
+
+fieldset {
+
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 3px;
+  width: 187px;
+}
+
+input {
+  width: 100%;
+  font-size: 8pt;
+  text-align: right;
+  padding: 2px;
+}
+
+.span-left {
+  width: 55%;
+  height: 18pt;
+  float: left;
+  text-align: left;
+}
+
+.span-right {
+  width: 45%;
+  height: 16pt;
+  float: right;
+  text-align: right;
+}
+
+.button-left {
+  width: 50%;
+  height: 40px;
+  float: left;
+  text-align: left;
+}
+
+.button-right {
+  width: 50%;
+  height: 40px;
+  float: right;
+  text-align: right;
+}
+
+button {
+  display: block;
+  padding: 5px;
+  margin: 5px;
+  width: 90%;
+}
+
