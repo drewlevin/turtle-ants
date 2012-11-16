@@ -14,30 +14,30 @@
   <div id="main_container">
     <canvas id="canvas" width="720px" height="720px" border="2px solid black"></canvas>
     <div id="controls">
-      <span class="button-left"><button id="start">Start</button></span>
-      <span class="button-right"><button id="reset">Reset</button></span>
+      <span class="button-left"><button id="button_start">Pause</button></span>
+      <span class="button-right"><button id="button_reset">Reset</button></span>
       <fieldset>
         <legend>Environment</legend>
         <ul>
           <li>
             <span class="span-left">Tree Depth:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_treedepth" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Full Depth:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_fulldepth" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Branch Prob:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_branchprob" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Food Prob:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_foodprob" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Food Amount:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_foodamount" type="number" /></span>
           </li>
         <ul>
       </fieldset>
@@ -46,36 +46,87 @@
         <ul>
           <li>
             <span class="span-left">Population:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_population" type="number" /></span>
+          </li>
+          <li>
+            <span class="span-left">Searching:</span>
+            <span class="span-right"><input id="in_searching" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Speed:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_speed" type="number" /></span>
           </li>
           <li>
             <span class="span-left">Path Switch:</span>
-            <span class="span-right"><input type="number" /></span>
+            <span class="span-right"><input id="in_pathswitch" type="number" /></span>
+          </li>
+          <li>
+            <span class="span-left">Initial Paths:</span>
+            <span class="span-right"><input id="in_initialpaths" type="checkbox" /></span>
+          </li>
+          <li>
+            <span class="span-left">Return to Food:</span>
+            <span class="span-right"><input id="in_returntofood" type="checkbox" /></span>
           </li>
         <ul>
       </fieldset>
-      <fieldset>
-        <legend>Pheromone</legend>
-        <ul>
-          <li>
-            <span class="span-left">Decay Rate:</span>
-            <span class="span-right"><input type="number" /></span>
-          </li>
-          <li>
-            <span class="span-left">Sense Profile:</span> 
-            <span class="span-right">
-              <select>
-                <option>Linear</option>
-                <option>Logarithmic</option>
-              </select>
-            </span>
-          </li>
-        <ul>
+      <hline/>
+      <fieldset id="fs_nestinteraction">
+        <legend><span>Nest Interaction</input></span></legend>
+        <div id="div_nestinteraction">
+          <ul>
+            <li>
+              <span class="span-left">Prob Multiplier:</span>
+              <span class="span-right"><input type="number" /></span>
+            </li>
+            <li>
+              <span class="span-left">Give Path:</span>
+              <span class="span-right"><input type="checkbox" /></span>
+            </li>
+            <li>
+              <span class="span-left">Take a Buddy:</span>
+              <span class="span-right"><input type="checkbox" /></span>
+            </li>
+            <li>
+              <span class="span-left">Smell Decay:</span>
+              <span class="span-right"><input type="number" /></span>
+            </li>
+          <ul>
+        </div>
       </fieldset>
+      <fieldset id="fs_pathinteraction">
+        <legend><span>Path Interaction</input></span></legend>
+        <div id="div_pathinteraction">
+          <ul>
+            <li>
+              <span class="span-left">Interact Prob:</span>
+              <span class="span-right"><input type="number" /></span>
+            </li>
+          <ul>
+        </div>
+      </fieldset>
+      <fieldset id="fs_pheromone">
+        <legend>Pheromone</input></legend>
+        <div id="div_pheromone">
+          <ul>
+            <li>
+              <span class="span-left">Decay Rate:</span>
+              <span class="span-right"><input id="in_decayrate" type="number" /></span>
+            </li>
+            <li>
+              <span class="span-left">Sense Profile:</span> 
+              <span class="span-right">
+                <select id="in_senseprofile">
+                  <option>Linear</option>
+                  <option>Log</option>
+                </select>
+              </span>
+            </li>
+          <ul>
+        </div>
+      </fieldset>
+      <button>Apply Changes</button>
+      <button>Revert to Set Values</button>
     </div>
   </div>
   <div id="debug_container">

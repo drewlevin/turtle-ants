@@ -21,7 +21,7 @@
 }
 
 #debug_container {
-  width: 720px;
+  width: 945px;
   height: 50px;
   border: 1px solid red;
   margin: 10px;
@@ -42,14 +42,26 @@ li {
 }
 
 fieldset {
-
   font-size: 12pt;
   font-weight: bold;
   margin: 3px;
   width: 187px;
 }
 
-input {
+fieldset[disabled="true"] {
+  background-color: #EEE;
+}
+
+fieldset[disabled="false"] {
+
+}
+
+fieldset legend {
+  cursor: pointer;
+  border: 2px solid #CCC;
+}
+
+input[type="number"] {
   width: 100%;
   font-size: 8pt;
   text-align: right;
@@ -57,14 +69,15 @@ input {
 }
 
 .span-left {
-  width: 55%;
+  width: 60%;
   height: 18pt;
   float: left;
   text-align: left;
+  font-size: 10pt;
 }
 
 .span-right {
-  width: 45%;
+  width: 35%;
   height: 16pt;
   float: right;
   text-align: right;
@@ -87,7 +100,7 @@ input {
 button {
   display: block;
   padding: 5px;
-  margin: 5px;
+  margin: 5px auto;
   width: 90%;
 }
 

@@ -3,6 +3,16 @@ var HEIGHT = 0;
 
 var DEPTH = 10;
 var FULL_TREE_DEPTH = 4;
+var CHILD_PROB = 0.60;
+var FOOD_PROB = 0.35;
+var MAX_FOOD = 1000;
+
+var NEST_ANTS = 1000;
+var SEARCHING = 1000;
+var ANT_SPEED = 0.01;
+var SWITCH_PATH = 0.001;
+var INITIAL_PATH = false;
+var RETURN_TO_FOOD = true;
 
 var NODE_RADIUS = 7;
 var ANT_RADIUS = 2;
@@ -13,19 +23,17 @@ var FOOD_DRAW_RADIUS = 3;
 
 var NODE_LIMIT = 3;
 
-var ANT_SPEED = 0.01;
-var CHILD_PROB = 0.60;
 var LEAVE_PROB = 0.001;
 var STOP_SEARCHING = 0.0000;
-var SWITCH_PATH = 0.001;
-var FOOD_PROB = 0.35;
 var PHEROMONE_DECAY = 0.999;
-var MAX_FOOD = 1000;
-var NEST_ANTS = 1000;
 
-var PHEROMONE = false;
-var INITIAL_PATH = true;
+var NEST_INTERACTION = false;
+var PATH_INTERACTION = false;
+var PHEROMONE = true;
 var SHOW_ANT_COUNT = false;
+var SENSE_LINEAR = true;
+
+var RUNNING = true;
 
 var l = 35;
 
@@ -181,43 +189,73 @@ function mouseMove(e)
   hover_node = picker.getNode(x, y);
 }
 
-function update()
+function reset(e)
 {
-  nest.update();
-  root.update();
+  food_nodes = [];
+  tree_ants = [];
+  lymph_ants = [];
 
-  for (a in tree_ants) {
-    if (tree_ants[a].update()) {
-      tree_ants.splice(a, 1);
-    }
-  }
+  static_canvas = document.createElement('canvas');
+  static_canvas.width = WIDTH;
+  static_canvas.height = HEIGHT;
+  static_ctx = static_canvas.getContext('2d');
 
-  setTimeout(update, 16);
+  init();
 }
 
+function pause(e) 
+{
+  if (RUNNING) {
+    RUNNING = false;
+    $('#button_start').html("Start");
+  } else {
+    RUNNING = true;
+    $('#button_start').html("Pause");
+    update();
+    render();
+  }
+}
+
+function update()
+{
+  if (RUNNING) {
+    nest.update();
+    root.update();
+
+    for (a in tree_ants) {
+      if (tree_ants[a].update()) {
+        tree_ants.splice(a, 1);
+      }
+    }
+
+    setTimeout(update, 16);
+  }
+}
 
 function render()
 {
-  requestAnimationFrame(render);
+  if (RUNNING) {
+    requestAnimationFrame(render);
 
-  ctx.fillStyle = '#EEE';
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.drawImage(static_canvas, 0, 0);
+    ctx.fillStyle = '#EEE';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.drawImage(static_canvas, 0, 0);
 
-//  for (n in food_nodes) {
-//    food_nodes[n].draw();
-//  }
+  //  for (n in food_nodes) {
+  //    food_nodes[n].draw();
+  //  }
 
-  root.draw();
-  
-  if (hover_node != null)
-    hover_node.drawSelected(ctx);
+    root.draw();
+    
+    if (hover_node != null)
+      hover_node.drawSelected(ctx);
 
-  for (a in tree_ants) {
-    tree_ants[a].draw();
+    for (a in tree_ants) {
+      tree_ants[a].draw();
+    }
+
+    nest.draw();
   }
-
-  nest.draw();
 }
 
 function init_pheromones(amount, node, path)
@@ -246,19 +284,63 @@ function init()
 
   positionTree(root);
 
-  food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
-  food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
-  food_node_a.foodColor = '#C22';
-  food_node_b.foodColor = '#22C';
+  if (INITIAL_PATH) {
+    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_a.foodColor = '#C22';
+    food_node_b.foodColor = '#22C';
 
-  if (PHEROMONE) {
-    init_pheromones(2000, root, food_node_a.getPath());
-    init_pheromones(2000, root, food_node_b.getPath());
+    if (PHEROMONE) {
+      init_pheromones(2000, root, food_node_a.getPath());
+      init_pheromones(2000, root, food_node_b.getPath());
+    }
   }
 
   nest = new Nest(NEST_ANTS);
 
   root.drawTree(static_ctx);
+}
+
+function setInputValues()
+{
+  $('#in_treedepth').val(DEPTH);
+  $('#in_fulldepth').val(FULL_TREE_DEPTH);
+  $('#in_branchprob').val(CHILD_PROB);
+  $('#in_foodprob').val(FOOD_PROB);
+  $('#in_foodamount').val(MAX_FOOD);
+
+  $('#in_population').val(NEST_ANTS);
+  $('#in_searching').val(SEARCHING);
+  $('#in_speed').val(ANT_SPEED);
+  $('#in_pathswitch').val(SWITCH_PATH);
+  $('#in_initialpaths').attr('checked', INITIAL_PATH);
+  $('#in_returntofood').attr('checked', RETURN_TO_FOOD);
+
+  $('#in_decayrate').val(PHEROMONE_DECAY);
+//  $('#in_senseprofile').val();
+  $('#button_start').click(function(e) { pause(e) });
+  $('#button_reset').click(function(e) { reset(e) });
+
+  $('#div_nestinteraction').hide();
+  $('#div_pathinteraction').hide();
+
+  $('#fs_nestinteraction legend').click(function() {
+    $('#div_nestinteraction').stop().show(250);
+    $('#div_pathinteraction').stop().hide(250);
+    $('#div_pheromone').stop().hide(250);
+  });
+  $('#fs_pathinteraction legend').click(function() {
+    $('#div_pathinteraction').stop().show(250);
+    $('#div_nestinteraction').stop().hide(250);
+    $('#div_pheromone').stop().hide(250);
+  });
+  $('#fs_pheromone legend').click(function() {
+    $('#div_pheromone').stop().show(250);
+    $('#div_pathinteraction').stop().hide(250);
+    $('#div_nestinteraction').stop().hide(250);
+  });
+
+
 }
 
 $(document).ready(function() {  
@@ -275,6 +357,7 @@ $(document).ready(function() {
   static_ctx = static_canvas.getContext('2d');
   
 //  $('#canvas').mousemove(function(e) { mouseMove(e); });
+  setInputValues();
 
   init();
 
