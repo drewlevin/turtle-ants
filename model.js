@@ -8,11 +8,26 @@ var FOOD_PROB = 0.35;
 var MAX_FOOD = 1000;
 
 var NEST_ANTS = 1000;
-var SEARCHING = 1000;
+var SEARCHING = 100;
 var ANT_SPEED = 0.01;
 var SWITCH_PATH = 0.001;
 var INITIAL_PATH = false;
-var RETURN_TO_FOOD = true;
+var RETURN_TO_FOOD = false;
+
+var NEST_INTERACTION = false;
+var PATH_INTERACTION = true;
+var PHEROMONE = false;
+
+var REINFORCEMENT_STR = 0.75;
+var GIVE_PATH = true;
+var CAN_SMELL = false;
+var SCENT_DECAY = 0.75;
+
+var STAY_PROB = 0.05;
+var INTERACT_PROB = 0.75;
+var AVERAGE_TIME = 1000;
+
+var PHEROMONE_DECAY = 0.001;
 
 var NODE_RADIUS = 7;
 var ANT_RADIUS = 2;
@@ -23,13 +38,6 @@ var FOOD_DRAW_RADIUS = 3;
 
 var NODE_LIMIT = 3;
 
-var LEAVE_PROB = 0.001;
-var STOP_SEARCHING = 0.0000;
-var PHEROMONE_DECAY = 0.999;
-
-var NEST_INTERACTION = false;
-var PATH_INTERACTION = false;
-var PHEROMONE = true;
 var SHOW_ANT_COUNT = false;
 var SENSE_LINEAR = true;
 
@@ -296,7 +304,7 @@ function init()
     }
   }
 
-  nest = new Nest(NEST_ANTS);
+  nest = new Nest(NEST_ANTS, SEARCHING);
 
   root.drawTree(static_ctx);
 }
@@ -316,13 +324,23 @@ function setInputValues()
   $('#in_initialpaths').attr('checked', INITIAL_PATH);
   $('#in_returntofood').attr('checked', RETURN_TO_FOOD);
 
+  $('#in_recruitstrength').val(REINFORCEMENT_STR);
+  $('#in_givepath').attr('checked', GIVE_PATH);
+  $('#in_cansmell').attr('checked', CAN_SMELL);
+  $('#in_scentdecay').val(SCENT_DECAY);
+
+  $('#in_stayprob').val(STAY_PROB);
+  $('#in_interactprob').val(INTERACT_PROB);
+  $('#in_averagetime').val(AVERAGE_TIME);
+
   $('#in_decayrate').val(PHEROMONE_DECAY);
 //  $('#in_senseprofile').val();
+
   $('#button_start').click(function(e) { pause(e) });
   $('#button_reset').click(function(e) { reset(e) });
 
-  $('#div_nestinteraction').hide();
   $('#div_pathinteraction').hide();
+  $('#div_pheromone').hide();
 
   $('#fs_nestinteraction legend').click(function() {
     $('#div_nestinteraction').stop().show(250);
@@ -340,7 +358,7 @@ function setInputValues()
     $('#div_nestinteraction').stop().hide(250);
   });
 
-
+  $('#debug').text("hello");
 }
 
 $(document).ready(function() {  

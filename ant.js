@@ -13,6 +13,8 @@ function Ant(_dest) {
   this.dest = root;
   this.dist = 0;
   this.returning = false;
+  this.found_food = false;
+  this.directing = false;
   this.x = 0; this.y = 0;
   this.color = (_dest != null) ? ((_dest.food > 0) ? _dest.foodColor : '#333') : '#333';
 
@@ -26,8 +28,20 @@ function Ant(_dest) {
  */
 Ant.prototype.update = function() 
 {
+  // Check to see if the ant will stop directing
+  if (this.directing) {
+    if (Math.random() < (1.0 / AVERAGE_TIME)) {
+      this.directing = false;
+      this.origin.has_path_ant = false;
+    } else {
+      this.dist = ((((this.dist*100 + 1) - 80) % 5) + 80) / 100.0;
+    }
+  }
+
   // Update the ant's position
-  this.dist += ANT_SPEED;
+  if (!this.directing) {
+    this.dist += ANT_SPEED;
+  }
 
   // If moving outward
   if (!this.returning) {
@@ -54,7 +68,7 @@ Ant.prototype.update = function()
     }
   }
 
-  // Choose new destination
+  // At a node - choose new destination
   if (this.dist >= 1) 
   {
     this.dist = 0;
@@ -96,6 +110,16 @@ Ant.prototype.update = function()
     // If moving home
     else {
       this.origin.ants -= 1;
+      
+      // If Path Interaction, check to see if the ant stays
+      if (PATH_INTERACTION) {
+        if (this.found_food && !this.origin.has_path_ant && !this.directing && Math.random() < STAY_PROB) {
+          this.directing = true;
+          this.origin.has_path_ant = true;
+          this.dist = 0.8;
+          return false;
+        }
+      }
       // If at a regular branch
       if (this.dest.parent != null) {
         this.origin = this.dest;
@@ -104,17 +128,22 @@ Ant.prototype.update = function()
       }
       // If back at the nest
       else {
-        // If the ant stays at the nest
-        if (Math.random() < STOP_SEARCHING) {
-          nest.returnHome();
-          return true;
-        } 
-        // If the ant goes back out to search again
-        else {
-          this.returning = false;
-          this.origin = root;
-          this.branch();
+        // Nest Interaction - determine to stop or bring a friend
+        if (NEST_INTERACTION) {
+          // If the ant found food there's a chance to add a friend
+          if (this.found_food && Math.random() < REINFORCEMENT_STR) {
+            nest.queue(this);
+          }
+          // If the ant didn't find food there's a chance to stay home
+          else if (!this.found_food && Math.random() < REINFORCEMENT_STR) {
+            nest.returnHome();
+            return true;        // True means the ant stays home
+          }
         }
+        // If you didn't return home, go out again
+        this.returning = false;
+        this.origin = root;
+        this.branch();
       }
     }
   }
@@ -137,7 +166,7 @@ Ant.prototype.branch = function()
   this.origin = this.dest;
 
   // If the ant has a destination in mind
-  if (!this.first && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
+  if (!this.first && this.found_food && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
     this.dest = this.path[this.dest.depth] ? this.dest.right : this.dest.left;
   }
   // If the ant needs to choose a new destination
@@ -154,12 +183,35 @@ Ant.prototype.branch = function()
       var r = sense(this.dest.right.pheromone);
       var l = sense(this.dest.left.pheromone);
       d = Math.random() < r / (r + l);
-    } 
-    // If not using pheromone trails
+    }
+    // If ants can be recruited on the path
+    else if (PATH_INTERACTION) {
+      // If there is a recruiter to the right and NOT the left
+      if (this.dest.right.has_path_ant && !this.dest.left.has_path_ant &&
+          Math.random() < INTERACT_PROB) {
+        d = true;
+      }
+      // If there is a recruiter to the left and NOT the right
+      else if (!this.dest.right.has_path_ant && this.dest.left.has_path_ant &&
+               Math.random() < INTERACT_PROB) {
+        d = false;
+      }
+      // Otherwise it's 50/50
+      else {
+        d = Math.random() < 0.5;
+      }
+    }
+    // If ants can smell food 
+    else if (CAN_SMELL) {
+      var r = scent(this.dest.right.scent);
+      var l = scent(this.dest.left.scent);
+      d = Math.random() < r / (r + l);
+    }
+    // If not using pheromone or scent trails
     else {
       d = Math.random() < 0.5;
     }
-    // Set the 
+    // Set the destination 
     this.dest = d ? this.dest.right : this.dest.left;
     this.path.push(d);              
   }
@@ -172,11 +224,21 @@ Ant.prototype.branch = function()
  */
 Ant.prototype.draw = function()
 {
-  ctx.fillStyle = this.color;
-  ctx.beginPath();
-  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
-  ctx.closePath();
-  ctx.fill();
+  if (!this.directing) {
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
+    ctx.closePath();
+    ctx.fill();
+  }
+  // If the ant is recruiting other ants on the path
+  else {
+    ctx.fillStyle = '#A39';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, ANT_RADIUS * 2, 0, Math.PI*2, true); 
+    ctx.closePath();
+    ctx.fill();    
+  }
 }
 
 /* sense
@@ -190,5 +252,10 @@ function sense(p)
   // Logarithmic pheromone profile
   else 
     return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1;
+}
+
+function scent(p)
+{
+  return Math.sqrt(p)+1;
 }
 

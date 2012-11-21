@@ -5,11 +5,13 @@ function Node(_parent, _depth, _isRight)
   this.isRight = _isRight;
   this.right = null;
   this.left = null;
+  this.has_path_ant = false;
 
   this.weight = 1;
   this.width = 2 * Math.PI;
   this.food = 0;
   this.pheromone = 0;
+  this.scent = 0;
   this.ants = 0;
 
   this.foodColor = '#3A5';
@@ -52,12 +54,22 @@ function Node(_parent, _depth, _isRight)
   this.update = function()
   {
     if (PHEROMONE && this.pheromone > 0) {
-      this.pheromone = this.pheromone * PHEROMONE_DECAY;
+      this.pheromone = this.pheromone * (1 - PHEROMONE_DECAY);
     }
 
     if (this.right != null && this.left != null) {
       this.right.update();
       this.left.update();
+    }
+
+    // Check for smell updates after the child updates so scent can percolate
+    if (CAN_SMELL) {
+      if (this.right == null) {
+        this.scent = this.food;
+      }
+      else if (this.right.scent > 0 || this.left.scent > 0) {
+        this.scent = (this.right.scent + this.left.scent) * (1 - SCENT_DECAY);
+      }
     }
   }
 
@@ -102,13 +114,14 @@ function Node(_parent, _depth, _isRight)
 
   this.draw = function()
   {
-    if (PHEROMONE && this.pheromone > 0) {
-      
+    // Draw pheromone trails
+    if (PHEROMONE && this.pheromone > 0) 
+    {      
       var scale = Math.log(this.pheromone) / Math.log(10);
       scale = Math.max(Math.min(scale, 3.5), 0.0) / 3.5;
 
       ctx.lineWidth = BRANCH_WIDTH;
-      ctx.strokeStyle = "rgb(" + Math.floor(100+(scale*150)) + 
+      ctx.strokeStyle = "rgb(" + Math.floor(100-(scale*52)) + 
                           ", " + Math.floor(80+(scale*120))  + 
                           ", " + Math.floor(30+(scale*45)) + ")";
       ctx.beginPath();
@@ -117,6 +130,24 @@ function Node(_parent, _depth, _isRight)
       ctx.stroke();
     }
 
+    // Draw food scent trails
+    if (!PHEROMONE && CAN_SMELL && this.scent > 0 && this.parent != null) 
+    {
+
+      var scale = this.scent / MAX_FOOD;
+      scale = Math.max(Math.min(scale, 1.0), 0.0);
+
+      ctx.lineWidth = BRANCH_WIDTH;
+      ctx.strokeStyle = "rgb(" + Math.floor(100+(scale*45)) + 
+                          ", " + Math.floor(80+(scale*80))  + 
+                          ", " + Math.floor(30+(scale*50)) + ")";
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.parent.x, this.parent.y);
+      ctx.stroke();
+    }
+
+    // Draw food
     if (this.food > 0) {
       ctx.fillStyle = this.foodColor;
       ctx.beginPath();
@@ -125,6 +156,7 @@ function Node(_parent, _depth, _isRight)
       ctx.fill();  
     }
 
+    // Show the number of ants on the current branch
     if (SHOW_ANT_COUNT) {
       ctx.fillStyle = '#777';
       ctx.font = 'bold 14px ariel';
