@@ -21,23 +21,23 @@
         <ul>
           <li>
             <span class="span-left">Tree Depth:</span>
-            <span class="span-right"><input id="in_treedepth" type="number" /></span>
+            <span class="span-right"><input id="in_treedepth" type="number" min=3 max=10 step=1 /></span>
           </li>
           <li>
             <span class="span-left">Full Depth:</span>
-            <span class="span-right"><input id="in_fulldepth" type="number" /></span>
+            <span class="span-right"><input id="in_fulldepth" type="number" min=1 max=10 step=1 /></span>
           </li>
           <li>
             <span class="span-left">Branch Prob:</span>
-            <span class="span-right"><input id="in_branchprob" type="number" /></span>
+            <span class="span-right"><input id="in_branchprob" type="number" min=0 max=1 step=.01 /></span>
           </li>
           <li>
             <span class="span-left">Food Prob:</span>
-            <span class="span-right"><input id="in_foodprob" type="number" /></span>
+            <span class="span-right"><input id="in_foodprob" type="number" min=0 max=1 step=.01 /></span>
           </li>
           <li>
             <span class="span-left">Food Amount:</span>
-            <span class="span-right"><input id="in_foodamount" type="number" /></span>
+            <span class="span-right"><input id="in_foodamount" type="number" min=0 step=1 /></span>
           </li>
         <ul>
       </fieldset>
@@ -46,19 +46,19 @@
         <ul>
           <li>
             <span class="span-left">Population:</span>
-            <span class="span-right"><input id="in_population" type="number" /></span>
+            <span class="span-right"><input id="in_population" type="number" min=0 step=1 /></span>
           </li>
           <li>
             <span class="span-left">Searching:</span>
-            <span class="span-right"><input id="in_searching" type="number" /></span>
+            <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
           </li>
           <li>
             <span class="span-left">Speed:</span>
-            <span class="span-right"><input id="in_speed" type="number" /></span>
+            <span class="span-right"><input id="in_speed" type="number" min=0 max=1 step=.001 /></span>
           </li>
           <li>
             <span class="span-left">Path Switch:</span>
-            <span class="span-right"><input id="in_pathswitch" type="number" /></span>
+            <span class="span-right"><input id="in_pathswitch" type="number" min=0 max=1 step=.0001 /></span>
           </li>
           <li>
             <span class="span-left">Initial Paths:</span>
@@ -77,7 +77,7 @@
           <ul>
             <li>
               <span class="span-left">Recruit Strength:</span>
-              <span class="span-right"><input id="in_recruitstrength" type="number" /></span>
+              <span class="span-right"><input id="in_recruitstrength" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left">Give Path to Buddy:</span>
@@ -89,7 +89,7 @@
             </li>
             <li>
               <span class="span-left">Scent Decay:</span>
-              <span class="span-right"><input id="in_scentdecay" type="number" /></span>
+              <span class="span-right"><input id="in_scentdecay" type="number" min=0 max=1 step=.001 /></span>
             </li>
           <ul>
         </div>
@@ -100,15 +100,15 @@
           <ul>
             <li>
               <span class="span-left">Stay Prob:</span>
-              <span class="span-right"><input id="in_stayprob" type="number" /></span>
+              <span class="span-right"><input id="in_stayprob" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left">Interact Prob:</span>
-              <span class="span-right"><input id="in_interactprob" type="number" /></span>
+              <span class="span-right"><input id="in_interactprob" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left">Average Time:</span>
-              <span class="span-right"><input id="in_averagetime" type="number" /></span>
+              <span class="span-right"><input id="in_averagetime" type="number" min=0 step=1 /></span>
             </li>
           <ul>
         </div>
@@ -119,7 +119,7 @@
           <ul>
             <li>
               <span class="span-left">Decay Rate:</span>
-              <span class="span-right"><input id="in_decayrate" type="number" /></span>
+              <span class="span-right"><input id="in_decayrate" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left">Sense Profile:</span> 
@@ -133,8 +133,8 @@
           <ul>
         </div>
       </fieldset>
-      <button>Apply Changes</button>
-      <button>Revert to Set Values</button>
+      <button id="button_apply">Apply Changes</button>
+      <button id="button_revert">Revert to Set Values</button>
     </div>
   </div>
   <div id="debug_container">

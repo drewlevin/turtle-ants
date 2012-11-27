@@ -12,7 +12,7 @@ function Nest(_num_ants, _num_scouts)
     // The nest may send up to one ant out each step
 
     // First priority - clear the initial scout population
-    if (num_scouts > 0 || (PATH_INTERACTION && num_ants > 0)) {
+    if (num_scouts > 0 || ((PATH_INTERACTION || PHEROMONE) && num_ants > 0)) {
       if (INITIAL_PATH) {
         if (Math.random() < .5) {
           tree_ants.push(new Ant(food_node_a));

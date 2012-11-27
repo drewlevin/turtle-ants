@@ -121,7 +121,7 @@ function Node(_parent, _depth, _isRight)
       scale = Math.max(Math.min(scale, 3.5), 0.0) / 3.5;
 
       ctx.lineWidth = BRANCH_WIDTH;
-      ctx.strokeStyle = "rgb(" + Math.floor(100-(scale*52)) + 
+      ctx.strokeStyle = "rgb(" + Math.floor(100+(scale*150)) + 
                           ", " + Math.floor(80+(scale*120))  + 
                           ", " + Math.floor(30+(scale*45)) + ")";
       ctx.beginPath();
@@ -133,7 +133,6 @@ function Node(_parent, _depth, _isRight)
     // Draw food scent trails
     if (!PHEROMONE && CAN_SMELL && this.scent > 0 && this.parent != null) 
     {
-
       var scale = this.scent / MAX_FOOD;
       scale = Math.max(Math.min(scale, 1.0), 0.0);
 

@@ -14,9 +14,13 @@ var SWITCH_PATH = 0.001;
 var INITIAL_PATH = false;
 var RETURN_TO_FOOD = false;
 
-var NEST_INTERACTION = false;
-var PATH_INTERACTION = true;
+var NEST_INTERACTION = true;
+var PATH_INTERACTION = false;
 var PHEROMONE = false;
+
+var TEMP_NEST_INERACTION = true;
+var TEMP_PATH_INTERACTION = false;
+var TEMP_PHEROMONE = false;
 
 var REINFORCEMENT_STR = 0.75;
 var GIVE_PATH = true;
@@ -28,6 +32,7 @@ var INTERACT_PROB = 0.75;
 var AVERAGE_TIME = 1000;
 
 var PHEROMONE_DECAY = 0.001;
+var SENSE_LINEAR = true;
 
 var NODE_RADIUS = 7;
 var ANT_RADIUS = 2;
@@ -39,7 +44,6 @@ var FOOD_DRAW_RADIUS = 3;
 var NODE_LIMIT = 3;
 
 var SHOW_ANT_COUNT = false;
-var SENSE_LINEAR = true;
 
 var RUNNING = true;
 
@@ -87,7 +91,6 @@ var food_node_b_path;
           clearTimeout(id);
       };
 }())
-
 
 function buildTree(node, depth)
 {
@@ -195,6 +198,17 @@ function mouseMove(e)
   var y = e.pageY - off.top;
 
   hover_node = picker.getNode(x, y);
+}
+
+function apply_changes(e)
+{
+  getInputValues();
+  reset(e);
+}
+
+function revert(e)
+{
+  setInputValues();
 }
 
 function reset(e)
@@ -309,6 +323,57 @@ function init()
   root.drawTree(static_ctx);
 }
 
+function getInputValues()
+{
+  DEPTH = $('#in_treedepth').val();
+  FULL_TREE_DEPTH = $('#in_fulldepth').val();
+  CHILD_PROB = $('#in_branchprob').val();
+  FOOD_PROB = $('#in_foodprob').val();
+  MAX_FOOD = $('#in_foodamount').val();
+
+  NEST_ANTS = $('#in_population').val();
+  SEARCHING = $('#in_searching').val();
+  ANT_SPEED = Number($('#in_speed').val());
+  SWITCH_PATH = $('#in_pathswitch').val();
+  INITIAL_PATH = $('#in_initialpaths').is(':checked');
+  RETURN_TO_FOOD = $('#in_returntofood').is(':checked');
+
+  REINFORCEMENT_STR = $('#in_recruitstrength').val();
+  GIVE_PATH = $('#in_givepath').is(':checked');
+  CAN_SMELL = $('#in_cansmell').is(':checked');
+  SCENT_DECAY = $('#in_scentdecay').val();
+
+  STAY_PROB = $('#in_stayprob').val();
+  INTERACT_PROB = $('#in_interactprob').val();
+  AVERAGE_TIME = $('#in_averagetime').val();
+
+  PHEROMONE_DECAY = $('#in_decayrate').val();
+  SENSE_LINEAR = $('#in_senseprofile').val() == "Linear";
+
+
+  if (!TEMP_NEST_INTERACTION) {
+    $('#div_nestinteraction').stop().hide();
+    NEST_INTERACTION = false;
+  } else {
+    $('#div_nestinteraction').stop().show(250);
+    NEST_INTERACTION = true;
+  }
+  if (!TEMP_PATH_INTERACTION) {
+    $('#div_pathinteraction').stop().hide();
+    PATH_INTERACTION = false;
+  } else {
+    $('#div_pathinteraction').stop().show(250);
+    PATH_INTERACTION = true;
+  }
+  if (!TEMP_PHEROMONE) {
+    $('#div_pheromone').stop().hide();
+    PHEROMONE = false;
+  } else {
+    $('#div_pheromone').stop().show(250);
+    PHEROMONE = true;
+  }
+}
+
 function setInputValues()
 {
   $('#in_treedepth').val(DEPTH);
@@ -334,31 +399,29 @@ function setInputValues()
   $('#in_averagetime').val(AVERAGE_TIME);
 
   $('#in_decayrate').val(PHEROMONE_DECAY);
-//  $('#in_senseprofile').val();
+  $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : "Log");
 
-  $('#button_start').click(function(e) { pause(e) });
-  $('#button_reset').click(function(e) { reset(e) });
-
-  $('#div_pathinteraction').hide();
-  $('#div_pheromone').hide();
-
-  $('#fs_nestinteraction legend').click(function() {
+  if (!NEST_INTERACTION) {
+    $('#div_nestinteraction').stop().hide();
+    TEMP_NEST_INTERACTION = false;
+  } else {
     $('#div_nestinteraction').stop().show(250);
-    $('#div_pathinteraction').stop().hide(250);
-    $('#div_pheromone').stop().hide(250);
-  });
-  $('#fs_pathinteraction legend').click(function() {
+    TEMP_NEST_INTERACTION = true;
+  }
+  if (!PATH_INTERACTION) {
+    $('#div_pathinteraction').stop().hide();
+    TEMP_PATH_INTERACTION = false;
+  } else {
     $('#div_pathinteraction').stop().show(250);
-    $('#div_nestinteraction').stop().hide(250);
-    $('#div_pheromone').stop().hide(250);
-  });
-  $('#fs_pheromone legend').click(function() {
+    TEMP_PATH_INTERACTION = true;
+  }
+  if (!PHEROMONE) {
+    $('#div_pheromone').stop().hide();
+    TEMP_PHEROMONE = false;
+  } else {
     $('#div_pheromone').stop().show(250);
-    $('#div_pathinteraction').stop().hide(250);
-    $('#div_nestinteraction').stop().hide(250);
-  });
-
-  $('#debug').text("hello");
+    TEMP_PHEROMONE = true;
+  }
 }
 
 $(document).ready(function() {  
@@ -375,6 +438,37 @@ $(document).ready(function() {
   static_ctx = static_canvas.getContext('2d');
   
 //  $('#canvas').mousemove(function(e) { mouseMove(e); });
+
+  $('#button_start').click(function(e) { pause(e) });
+  $('#button_reset').click(function(e) { reset(e) });
+  $('#button_revert').click(function(e) { revert(e) });
+  $('#button_apply').click(function(e) { apply_changes(e) });
+
+  $('#fs_nestinteraction legend').click(function() {
+    $('#div_nestinteraction').stop().show(250);
+    $('#div_pathinteraction').stop().hide(250);
+    $('#div_pheromone').stop().hide(250);
+    TEMP_NEST_INTERACTION = true;
+    TEMP_PATH_INTERACTION = false;
+    TEMP_PHEROMONE = false;
+  });
+  $('#fs_pathinteraction legend').click(function() {
+    $('#div_pathinteraction').stop().show(250);
+    $('#div_nestinteraction').stop().hide(250);
+    $('#div_pheromone').stop().hide(250);
+    TEMP_NEST_INTERACTION = false;
+    TEMP_PATH_INTERACTION = true;
+    TEMP_PHEROMONE = false;
+  });
+  $('#fs_pheromone legend').click(function() {
+    $('#div_pheromone').stop().show(250);
+    $('#div_pathinteraction').stop().hide(250);
+    $('#div_nestinteraction').stop().hide(250);
+    TEMP_NEST_INTERACTION = false;
+    TEMP_PATH_INTERACTION = false;
+    TEMP_PHEROMONE = true;
+  });
+
   setInputValues();
 
   init();
