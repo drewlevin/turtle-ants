@@ -25,11 +25,11 @@ var TEMP_PHEROMONE = false;
 var REINFORCEMENT_STR = 0.75;
 var GIVE_PATH = true;
 var CAN_SMELL = false;
-var SCENT_DECAY = 0.75;
+var SCENT_DECAY = 0.9;
 
 var STAY_PROB = 0.05;
 var INTERACT_PROB = 0.75;
-var AVERAGE_TIME = 1000;
+var AVERAGE_TIME = 100;
 
 var PHEROMONE_DECAY = 0.001;
 var SENSE_LINEAR = true;
@@ -470,6 +470,25 @@ $(document).ready(function() {
   });
 
   setInputValues();
+
+  pos = $('#canvas').position();
+  $('<div id="documentation"></div>').css( 
+      { "top": (pos.top + 50) + "px", "left": (pos.left + 435) + "px"}
+     ).prependTo($('#main_container'));
+
+  $('.hoverdoc').hover(
+    function() {
+      pos = $(this).position();
+      element = $(this).next().children('select, input');
+      $('#documentation').html(getDescription(element));
+      $('#documentation').css("top", pos.top);
+      $('#documentation').stop(true,true).fadeIn(150);
+    } ,
+    function() {
+      $('#documentation').css("top", pos.top);
+      $('#documentation').stop(true,true).fadeOut(150);
+    });
+
 
   init();
 

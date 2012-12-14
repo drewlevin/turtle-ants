@@ -4,11 +4,12 @@
   <title>Ant Simulation</title>
   <link href="ants.css" rel="stylesheet" type="text/css" />
   <script id="jquery" src="jquery-1.8.2.min.js" type="text/javascript"></script>
-  <script id="scr_node"  src="node.js"  type="text/javascript"></script>
-  <script id="scr_quad"  src="quad.js"  type="text/javascript"></script>
-  <script id="scr_nest"  src="nest.js"  type="text/javascript"></script>
-  <script id="scr_ant"   src="ant.js"   type="text/javascript"></script>
-  <script id="scr_model" src="model.js" type="text/javascript"></script>
+  <script id="scr_node"  src="node.js"     type="text/javascript"></script>
+  <script id="scr_quad"  src="quad.js"     type="text/javascript"></script>
+  <script id="scr_nest"  src="nest.js"     type="text/javascript"></script>
+  <script id="scr_ant"   src="ant.js"      type="text/javascript"></script>
+  <script id="scr_model" src="model.js"    type="text/javascript"></script>
+  <script id="scr_tool"  src="tooltips.js" type="text/javascript"></script>
 </head>
 <body>
   <div id="main_container">
@@ -20,23 +21,23 @@
         <legend>Environment</legend>
         <ul>
           <li>
-            <span class="span-left">Tree Depth:</span>
+            <span class="span-left hoverdoc">Tree Depth:</span>
             <span class="span-right"><input id="in_treedepth" type="number" min=3 max=10 step=1 /></span>
           </li>
           <li>
-            <span class="span-left">Full Depth:</span>
+            <span class="span-left hoverdoc">Full Depth:</span>
             <span class="span-right"><input id="in_fulldepth" type="number" min=1 max=10 step=1 /></span>
           </li>
           <li>
-            <span class="span-left">Branch Prob:</span>
+            <span class="span-left hoverdoc">Branch Prob:</span>
             <span class="span-right"><input id="in_branchprob" type="number" min=0 max=1 step=.01 /></span>
           </li>
           <li>
-            <span class="span-left">Food Prob:</span>
+            <span class="span-left hoverdoc">Food Prob:</span>
             <span class="span-right"><input id="in_foodprob" type="number" min=0 max=1 step=.01 /></span>
           </li>
           <li>
-            <span class="span-left">Food Amount:</span>
+            <span class="span-left hoverdoc">Food Amount:</span>
             <span class="span-right"><input id="in_foodamount" type="number" min=0 step=1 /></span>
           </li>
         <ul>
@@ -45,27 +46,27 @@
         <legend>Ants</legend>
         <ul>
           <li>
-            <span class="span-left">Population:</span>
+            <span class="span-left hoverdoc">Population:</span>
             <span class="span-right"><input id="in_population" type="number" min=0 step=1 /></span>
           </li>
           <li>
-            <span class="span-left">Searching:</span>
+            <span class="span-left hoverdoc">Searching:</span>
             <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
           </li>
           <li>
-            <span class="span-left">Speed:</span>
+            <span class="span-left hoverdoc">Speed:</span>
             <span class="span-right"><input id="in_speed" type="number" min=0 max=1 step=.001 /></span>
           </li>
           <li>
-            <span class="span-left">Path Switch:</span>
+            <span class="span-left hoverdoc">Path Switch:</span>
             <span class="span-right"><input id="in_pathswitch" type="number" min=0 max=1 step=.0001 /></span>
           </li>
           <li>
-            <span class="span-left">Initial Paths:</span>
+            <span class="span-left hoverdoc">Initial Paths:</span>
             <span class="span-right"><input id="in_initialpaths" type="checkbox" /></span>
           </li>
           <li>
-            <span class="span-left">Return to Food:</span>
+            <span class="span-left hoverdoc">Return to Food:</span>
             <span class="span-right"><input id="in_returntofood" type="checkbox" /></span>
           </li>
         <ul>
@@ -76,19 +77,19 @@
         <div id="div_nestinteraction">
           <ul>
             <li>
-              <span class="span-left">Recruit Strength:</span>
+              <span class="span-left hoverdoc">Recruit Strength:</span>
               <span class="span-right"><input id="in_recruitstrength" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
-              <span class="span-left">Give Path to Buddy:</span>
+              <span class="span-left hoverdoc">Give Path to Buddy:</span>
               <span class="span-right"><input id="in_givepath" type="checkbox" /></span>
             </li>
             <li>
-              <span class="span-left">Can Smell:</span>
+              <span class="span-left hoverdoc">Can Smell:</span>
               <span class="span-right"><input id="in_cansmell" type="checkbox" /></span>
             </li>
             <li>
-              <span class="span-left">Scent Decay:</span>
+              <span class="span-left hoverdoc">Scent Decay:</span>
               <span class="span-right"><input id="in_scentdecay" type="number" min=0 max=1 step=.001 /></span>
             </li>
           <ul>
@@ -99,30 +100,30 @@
         <div id="div_pathinteraction">
           <ul>
             <li>
-              <span class="span-left">Stay Prob:</span>
+              <span class="span-left hoverdoc">Stay Prob:</span>
               <span class="span-right"><input id="in_stayprob" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
-              <span class="span-left">Interact Prob:</span>
+              <span class="span-left hoverdoc">Interact Prob:</span>
               <span class="span-right"><input id="in_interactprob" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
-              <span class="span-left">Average Time:</span>
-              <span class="span-right"><input id="in_averagetime" type="number" min=0 step=1 /></span>
+              <span class="span-left hoverdoc">Average Time:</span>
+              <span class="span-right"><input id="in_averagetime" type="number" min=1 step=1 /></span>
             </li>
           <ul>
         </div>
       </fieldset>
       <fieldset id="fs_pheromone">
-        <legend>Pheromone</input></legend>
+        <legend><span>Pheromone</span></legend>
         <div id="div_pheromone">
           <ul>
             <li>
-              <span class="span-left">Decay Rate:</span>
+              <span class="span-left hoverdoc">Decay Rate:</span>
               <span class="span-right"><input id="in_decayrate" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
-              <span class="span-left">Sense Profile:</span> 
+              <span class="span-left hoverdoc">Sense Profile:</span> 
               <span class="span-right">
                 <select id="in_senseprofile">
                   <option>Linear</option>
