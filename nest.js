@@ -23,7 +23,6 @@ function Nest(_num_ants, _num_scouts)
         this.queue(new Ant());
       }
       num_scouts--;
-      num_ants--; 
     }
 
     // Second priority - send out ants randomly based on the nest time parameter
@@ -34,7 +33,6 @@ function Nest(_num_ants, _num_scouts)
       var leaving = definite + (Math.random() < extra ? 1 : 0);
       for (var i=0; i < leaving && num_ants > 0; i++) {
         this.queue(new Ant());
-        num_ants--;
       }
     }
 
@@ -46,17 +44,21 @@ function Nest(_num_ants, _num_scouts)
   
   this.queue = function(_ant) {
     queued_ants.push(_ant);
+    num_ants--;
   }
 
   this.recruit = function(_ant) {
-
+    var num_recruited = 0;
+    for (var i=num_ants; i>0; i--) {
+      num_recruited += Math.random() < RECRUIT_PROB ? 1 : 0;
+    }
     if (GIVE_PATH) {
-      for (var i=0; i < num_ants * RECRUIT_PROB; i++) {
+      for (var i=num_recruited; i>0; i--) {
         this.queue(new Ant(_ant.dest));
       }
     }
     else {
-      for (var i=0; i < num_ants * RECRUIT_PROB; i++) {
+      for (var i=num_recruited; i>0; i--) {
         this.queue(new Ant());
       }
     }
