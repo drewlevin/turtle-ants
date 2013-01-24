@@ -1,39 +1,46 @@
 var WIDTH = 0;
 var HEIGHT = 0;
 
+// Environment
 var DEPTH = 10;
 var FULL_TREE_DEPTH = 4;
 var CHILD_PROB = 0.60;
 var FOOD_PROB = 0.35;
 var MAX_FOOD = 1000;
 
+// Ants
 var NEST_ANTS = 1000;
-var SEARCHING = 100;
 var ANT_SPEED = 0.01;
-var SWITCH_PATH = 0.001;
 var INITIAL_PATH = false;
 var RETURN_TO_FOOD = false;
+var SWITCH_PATH = 0.001;
+var CAN_SMELL = false;
+var SCENT_RADIUS = 1;
 
-var NEST_INTERACTION = true;
-var PATH_INTERACTION = false;
+// Interaction Headers
+var NEST_INTERACTION = false;
+var PATH_INTERACTION = false; // PATH will not work if pheromone is enabled
 var PHEROMONE = false;
 
-var TEMP_NEST_INERACTION = true;
-var TEMP_PATH_INTERACTION = false;
-var TEMP_PHEROMONE = false;
+// Nest Interaction
+var SEARCHING = 100;
+var RECRUIT_PROB = 0.005;
+var STAY_HOME = 0.75;
+var NEST_TIME = 100000;
+var GIVE_PATH = false;
 
-var REINFORCEMENT_STR = 0.75;
-var GIVE_PATH = true;
-var CAN_SMELL = false;
-var SCENT_DECAY = 0.9;
-
+// Path Interaction
 var STAY_PROB = 0.05;
 var INTERACT_PROB = 0.75;
 var AVERAGE_TIME = 100;
 
+// Pheromone Interaction
 var PHEROMONE_DECAY = 0.001;
 var SENSE_LINEAR = true;
+var SENSE_LOG = false;
+var SENSE_CONST = false;
 
+// Graphic constants
 var NODE_RADIUS = 7;
 var ANT_RADIUS = 2;
 var BRANCH_WIDTH = 3;
@@ -49,6 +56,7 @@ var RUNNING = true;
 
 var l = 35;
 
+// Globals
 var root;
 var lymph;
 var picker;
@@ -332,16 +340,22 @@ function getInputValues()
   MAX_FOOD = $('#in_foodamount').val();
 
   NEST_ANTS = $('#in_population').val();
-  SEARCHING = $('#in_searching').val();
   ANT_SPEED = Number($('#in_speed').val());
-  SWITCH_PATH = $('#in_pathswitch').val();
   INITIAL_PATH = $('#in_initialpaths').is(':checked');
   RETURN_TO_FOOD = $('#in_returntofood').is(':checked');
-
-  REINFORCEMENT_STR = $('#in_recruitstrength').val();
-  GIVE_PATH = $('#in_givepath').is(':checked');
+  SWITCH_PATH = $('#in_pathswitch').val();
   CAN_SMELL = $('#in_cansmell').is(':checked');
-  SCENT_DECAY = $('#in_scentdecay').val();
+  SCENT_RADIUS = $('#in_scentradius').val();
+
+  NEST_INTERACTION = $('#in_nestinteraction').is(':checked');
+  PATH_INTERACTION = $('#in_pathinteraction').is(':checked');
+  PHEROMONE = $('#in_pheromone').is(':checked');
+
+  SEARCHING = $('#in_searching').val();
+  RECRUIT_PROB = $('#in_recruitprob').val();
+  STAY_HOME = $('#in_stayhome').val();;
+  NEST_TIME = $('#in_nesttime').val();;
+  GIVE_PATH = $('#in_givepath').is(':checked');
 
   STAY_PROB = $('#in_stayprob').val();
   INTERACT_PROB = $('#in_interactprob').val();
@@ -349,28 +363,23 @@ function getInputValues()
 
   PHEROMONE_DECAY = $('#in_decayrate').val();
   SENSE_LINEAR = $('#in_senseprofile').val() == "Linear";
+  SENSE_LOG = $('#in_senseprofile').val() == "Log";
+  SENSE_CONST = $('#in_senseprofile').val() == "Const";
 
-
-  if (!TEMP_NEST_INTERACTION) {
-    $('#div_nestinteraction').stop().hide();
-    NEST_INTERACTION = false;
+  if (!NEST_INTERACTION) {
+    $('#div_nestinteraction').stop().hide(250);
   } else {
     $('#div_nestinteraction').stop().show(250);
-    NEST_INTERACTION = true;
   }
-  if (!TEMP_PATH_INTERACTION) {
-    $('#div_pathinteraction').stop().hide();
-    PATH_INTERACTION = false;
+  if (!PATH_INTERACTION) {
+    $('#div_pathinteraction').stop().hide(250);
   } else {
     $('#div_pathinteraction').stop().show(250);
-    PATH_INTERACTION = true;
   }
-  if (!TEMP_PHEROMONE) {
-    $('#div_pheromone').stop().hide();
-    PHEROMONE = false;
+  if (!PHEROMONE) {
+    $('#div_pheromone').stop().hide(250);
   } else {
     $('#div_pheromone').stop().show(250);
-    PHEROMONE = true;
   }
 }
 
@@ -383,44 +392,43 @@ function setInputValues()
   $('#in_foodamount').val(MAX_FOOD);
 
   $('#in_population').val(NEST_ANTS);
-  $('#in_searching').val(SEARCHING);
   $('#in_speed').val(ANT_SPEED);
-  $('#in_pathswitch').val(SWITCH_PATH);
   $('#in_initialpaths').attr('checked', INITIAL_PATH);
   $('#in_returntofood').attr('checked', RETURN_TO_FOOD);
-
-  $('#in_recruitstrength').val(REINFORCEMENT_STR);
-  $('#in_givepath').attr('checked', GIVE_PATH);
+  $('#in_pathswitch').val(SWITCH_PATH);
   $('#in_cansmell').attr('checked', CAN_SMELL);
-  $('#in_scentdecay').val(SCENT_DECAY);
+  $('#in_scentradius').val(SCENT_RADIUS);
+
+  $('#in_searching').val(SEARCHING);
+  $('#in_recruitprob').val(RECRUIT_PROB);
+  $('#in_stayhome').val(STAY_HOME);
+  $('#in_nesttime').val(NEST_TIME);
+  $('#in_givepath').attr('checked', GIVE_PATH);
 
   $('#in_stayprob').val(STAY_PROB);
   $('#in_interactprob').val(INTERACT_PROB);
   $('#in_averagetime').val(AVERAGE_TIME);
 
   $('#in_decayrate').val(PHEROMONE_DECAY);
-  $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : "Log");
+  $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : (SENSE_LOG ? "Log" : "Const"));
 
+  $('#in_nestinteraction').attr('checked', NEST_INTERACTION);
   if (!NEST_INTERACTION) {
-    $('#div_nestinteraction').stop().hide();
-    TEMP_NEST_INTERACTION = false;
+    $('#div_nestinteraction').stop().hide(250);
   } else {
     $('#div_nestinteraction').stop().show(250);
-    TEMP_NEST_INTERACTION = true;
   }
+  $('#in_pathinteraction').attr('checked', PATH_INTERACTION);
   if (!PATH_INTERACTION) {
-    $('#div_pathinteraction').stop().hide();
-    TEMP_PATH_INTERACTION = false;
+    $('#div_pathinteraction').stop().hide(250);
   } else {
     $('#div_pathinteraction').stop().show(250);
-    TEMP_PATH_INTERACTION = true;
   }
+  $('#in_pheromone').attr('checked', PHEROMONE);
   if (!PHEROMONE) {
-    $('#div_pheromone').stop().hide();
-    TEMP_PHEROMONE = false;
+    $('#div_pheromone').stop().hide(250);
   } else {
     $('#div_pheromone').stop().show(250);
-    TEMP_PHEROMONE = true;
   }
 }
 
@@ -444,30 +452,48 @@ $(document).ready(function() {
   $('#button_revert').click(function(e) { revert(e) });
   $('#button_apply').click(function(e) { apply_changes(e) });
 
-  $('#fs_nestinteraction legend').click(function() {
-    $('#div_nestinteraction').stop().show(250);
-    $('#div_pathinteraction').stop().hide(250);
-    $('#div_pheromone').stop().hide(250);
-    TEMP_NEST_INTERACTION = true;
-    TEMP_PATH_INTERACTION = false;
-    TEMP_PHEROMONE = false;
+  $('#lgnd_environment').click(function() {
+    $('#div_environment').stop().slideToggle(250);
   });
-  $('#fs_pathinteraction legend').click(function() {
-    $('#div_pathinteraction').stop().show(250);
-    $('#div_nestinteraction').stop().hide(250);
-    $('#div_pheromone').stop().hide(250);
-    TEMP_NEST_INTERACTION = false;
-    TEMP_PATH_INTERACTION = true;
-    TEMP_PHEROMONE = false;
+
+  $('#lgnd_ants').click(function() {
+    $('#div_ants').stop().slideToggle(250);
   });
-  $('#fs_pheromone legend').click(function() {
-    $('#div_pheromone').stop().show(250);
-    $('#div_pathinteraction').stop().hide(250);
-    $('#div_nestinteraction').stop().hide(250);
-    TEMP_NEST_INTERACTION = false;
-    TEMP_PATH_INTERACTION = false;
-    TEMP_PHEROMONE = true;
+
+  $('#span_nestinteraction').click(function() {
+    $('#div_nestinteraction').stop().slideToggle(250);
   });
+  $('#span_pathinteraction').click(function() {
+    $('#div_pathinteraction').stop().slideToggle(250);
+  });
+  $('#span_pheromone').click(function() {
+    $('#div_pheromone').stop().slideToggle(250);
+  });
+
+  // Pheromone and Path Interaction are exclusive
+  $('#in_pathinteraction').click(function() {
+    if ($(this).is(':checked')) {
+      $('#in_pheromone').attr('checked', false);
+    }
+  });
+  $('#in_pheromone').click(function() {
+    if ($(this).is(':checked')) {
+      $('#in_pathinteraction').attr('checked', false);
+    }
+  });
+
+  // Share path only works if remember food is checked
+  $('#in_givepath').click(function() {
+    if ($(this).is(':checked')) {
+      $('#in_returntofood').attr('checked', true);
+    }
+  });
+  $('#in_returntofood').click(function() {
+    if (!$(this).is(':checked')) {
+      $('#in_givepath').attr('checked', false);
+    }
+  });
+  
 
   setInputValues();
 

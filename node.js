@@ -11,7 +11,8 @@ function Node(_parent, _depth, _isRight)
   this.width = 2 * Math.PI;
   this.food = 0;
   this.pheromone = 0;
-  this.scent = 0;
+  this.scent = false;
+  this.scent_dist = 0;
   this.ants = 0;
 
   this.foodColor = '#3A5';
@@ -65,10 +66,26 @@ function Node(_parent, _depth, _isRight)
     // Check for smell updates after the child updates so scent can percolate
     if (CAN_SMELL) {
       if (this.right == null) {
-        this.scent = this.food;
+        this.scent = this.food > 0;
+        this.scent_dist = 1;
       }
-      else if (this.right.scent > 0 || this.left.scent > 0) {
-        this.scent = (this.right.scent + this.left.scent) * (1 - SCENT_DECAY);
+      else {
+        this.scent = ((this.right.scent && this.right.scent_dist + 1 <= SCENT_RADIUS) || 
+                      (this.left.scent && this.left.scent_dist + 1 <= SCENT_RADIUS));
+        if (this.scent) {
+          if (this.right.scent && this.left.scent) {
+            this.scent_dist = Math.min(this.right.scent_dist + 1, this.left.scent_dist + 1);
+          }
+          else if (this.right.scent) {
+            this.scent_dist = this.right.scent_dist + 1;
+          }
+          else if (this.left.scent) {
+            this.scent_dist = this.left.scent_dist + 1;
+          }
+          else {
+            this.scent = false;
+          }
+        }
       }
     }
   }
@@ -131,15 +148,10 @@ function Node(_parent, _depth, _isRight)
     }
 
     // Draw food scent trails
-    if (!PHEROMONE && CAN_SMELL && this.scent > 0 && this.parent != null) 
+    if (!PHEROMONE && CAN_SMELL && this.scent && this.parent != null) 
     {
-      var scale = this.scent / MAX_FOOD;
-      scale = Math.max(Math.min(scale, 1.0), 0.0);
-
       ctx.lineWidth = BRANCH_WIDTH;
-      ctx.strokeStyle = "rgb(" + Math.floor(100+(scale*45)) + 
-                          ", " + Math.floor(80+(scale*80))  + 
-                          ", " + Math.floor(30+(scale*50)) + ")";
+      ctx.strokeStyle = "rgb(145, 160, 80)";
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.parent.x, this.parent.y);

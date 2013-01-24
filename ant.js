@@ -7,7 +7,7 @@
 function Ant(_dest) {
 
   // Public Variables
-  this.path = (_dest == null) ? [] : _dest.getPath().slice(0);
+  this.path = (_dest == null) ? [] : _dest.getPath().slice(0); // slice for deep copy
   this.first = (_dest == null);
   this.origin = root;
   this.dest = root;
@@ -130,12 +130,12 @@ Ant.prototype.update = function()
       else {
         // Nest Interaction - determine to stop or bring a friend
         if (NEST_INTERACTION) {
-          // If the ant found food there's a chance to add a friend
-          if (this.found_food && Math.random() < REINFORCEMENT_STR) {
-            nest.queue(this);
+          // If the ant found food there's a chance to send new ants out
+          if (this.found_food) {
+            nest.recruit(this);
           }
           // If the ant didn't find food there's a chance to stay home
-          else if (!this.found_food && Math.random() < REINFORCEMENT_STR) {
+          else if (!this.found_food && Math.random() < STAY_HOME) {
             nest.returnHome();
             return true;        // True means the ant stays home
           }
@@ -182,7 +182,17 @@ Ant.prototype.branch = function()
     if (PHEROMONE) {
       var r = sense(this.dest.right.pheromone);
       var l = sense(this.dest.left.pheromone);
-      d = Math.random() < r / (r + l);
+      if (!SENSE_CONST) {
+        d = Math.random() < r / (r + l);
+      }
+      else {
+        if (r == l) {
+          d = Math.random() < 0.5;
+        }
+        else {
+          d = r > l;
+        }
+      }
     }
     // If ants can be recruited on the path
     else if (PATH_INTERACTION) {
@@ -203,9 +213,17 @@ Ant.prototype.branch = function()
     }
     // If ants can smell food 
     else if (CAN_SMELL) {
-      var r = scent(this.dest.right.scent);
-      var l = scent(this.dest.left.scent);
-      d = Math.random() < r / (r + l);
+      var r = this.dest.right.scent;
+      var l = this.dest.left.scent;
+      if (r && !l) {
+        d = true;
+      }
+      else if (!r && l) {
+        d = false;
+      }
+      else {
+        d = Math.random() < 0.5;
+      }
     }
     // If not using pheromone or scent trails
     else {
@@ -247,15 +265,16 @@ Ant.prototype.draw = function()
 function sense(p)
 {
   // Linear pheromone profile
-  if (SENSE_LINEAR)
+  if (SENSE_LINEAR) {
     return ((-1/(1+Math.pow(2,-.001*(p-25000))))+1)*p+1;
+  }
   // Logarithmic pheromone profile
-  else 
-    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1;
-}
-
-function scent(p)
-{
-  return Math.sqrt(p)+1;
+  else if (SENSE_LOG) {
+    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
+  }
+  // Only checks to see which side is larger
+  else if (SENSE_CONST) {
+    return p;
+  }
 }
 
