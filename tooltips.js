@@ -59,20 +59,10 @@ function getDescription(element)
       desc = 'The number of ants that start in the nest.';
       init = '1000';
       break;
-    case 'in_searching':
-      title = 'Searching Ant Population';
-      desc = 'The number of ants that start out searching (only used in nest interaction).';
-      init = '100';
-      break;
     case 'in_speed':
       title = 'Ant Speed';
       desc = 'The distance an ant travels each timestep.  Each branch has length 1.';
       init = '0.01';
-      break;
-    case 'in_pathswitch':
-      title = 'Path Switching Probability';
-      desc = 'The probability that an ant will deviate from its path if it is returning to a known food location.';
-      init = '0.001';
       break;
     case 'in_initialpaths':
       title = 'Initial Paths';
@@ -84,25 +74,45 @@ function getDescription(element)
       desc = 'Toggles whether or not ants remember their full path when they find food.';
       init = 'false';
       break;
-    case 'in_recruitstrength':
-      title = 'Recruiting Strength';
-      desc = 'If ant ant returns with food, this is the probability that it recruits a friend.  If the ant returns without food, this is the probability that the ant decides to stay home.';
-      init = '0.75';
-      break;
-    case 'in_givepath':
-      title = 'Give Path to Buddy';
-      desc = 'Determines whether or not an ant can communicate its entire path when it has recruited a new ant to search with it.';
-      init = 'true';
+    case 'in_pathswitch':
+      title = 'Path Switching Probability';
+      desc = 'The probability that an ant will deviate from its path if it is returning to a known food location.';
+      init = '0.001';
       break;
     case 'in_cansmell':
       title = 'Can Smell';
       desc = 'Sets whether ants can smell food from a few branches away or not.  If so, ants probabilistically alter their search towards the food.';
       init = 'false';
       break;
-    case 'in_scentdecay':
-      title = 'Scent Decay';
-      desc = 'For every branch away from food, this is the fraction that the scent decays.';
-      init = '0.9';
+    case 'in_scentradius':
+      title = 'Scent Radius';
+      desc = 'How many branches away ants can smell food';
+      init = '1';
+      break;
+    case 'in_searching':
+      title = 'Searching Ant Population';
+      desc = 'The number of ants that start out searching (only used in nest interaction).';
+      init = '100';
+      break;
+    case 'in_recruitprob':
+      title = 'Recruiting Probability';
+      desc = 'If ant ant returns with food, it interacts with each ant in the nest and stimulates them to leave the nest with this probability (per ant).';
+      init = '0.75';
+      break;
+    case 'in_stayhome':
+      title = 'Stay Home after Fail';
+      desc = 'If an ant returns to the nest without food, it will stop searching with this probability.';
+      init = '0.75';
+      break;
+    case 'in_nesttime':
+      title = 'Average Time in Nest';
+      desc = 'The average amount of timesteps each non-searching ant stays inside the nest before venturing out again.';
+      init = '100,000';
+      break;
+    case 'in_givepath':
+      title = 'Share Path with Recruits';
+      desc = 'Determines whether or not an ant can communicate its entire path when it has recruited a new ant to search.  When enabled, also enables the "Remember Path" checkbox.';
+      init = 'false';
       break;
     case 'in_stayprob':
       title = 'Stay Probability';
