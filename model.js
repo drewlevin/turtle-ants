@@ -25,14 +25,15 @@ var PHEROMONE = false;
 // Nest Interaction
 var SEARCHING = 100;
 var RECRUIT_PROB = 0.005;
-var STAY_HOME = 0.75;
+var STAY_HOME_FAIL = 0.75;
+var STAY_HOME_SUCCESS = 0.25;
 var NEST_TIME = 100000;
 var GIVE_PATH = false;
 
 // Path Interaction
 var STAY_PROB = 0.05;
 var INTERACT_PROB = 0.75;
-var AVERAGE_TIME = 100;
+var AVERAGE_TIME = 500;
 
 // Pheromone Interaction
 var PHEROMONE_DECAY = 0.001;
@@ -353,8 +354,9 @@ function getInputValues()
 
   SEARCHING = $('#in_searching').val();
   RECRUIT_PROB = $('#in_recruitprob').val();
-  STAY_HOME = $('#in_stayhome').val();;
-  NEST_TIME = $('#in_nesttime').val();;
+  STAY_HOME_FAIL = $('#in_stayhomefail').val();
+  STAY_HOME_SUCCESS = $('#in_stayhomesuccess').val();
+  NEST_TIME = $('#in_nesttime').val();
   GIVE_PATH = $('#in_givepath').is(':checked');
 
   STAY_PROB = $('#in_stayprob').val();
@@ -401,7 +403,8 @@ function setInputValues()
 
   $('#in_searching').val(SEARCHING);
   $('#in_recruitprob').val(RECRUIT_PROB);
-  $('#in_stayhome').val(STAY_HOME);
+  $('#in_stayhomefail').val(STAY_HOME_FAIL);
+  $('#in_stayhomesuccess').val(STAY_HOME_SUCCESS);
   $('#in_nesttime').val(NEST_TIME);
   $('#in_givepath').attr('checked', GIVE_PATH);
 

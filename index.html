@@ -53,6 +53,10 @@
               <span class="span-right"><input id="in_population" type="number" min=0 step=1 /></span>
             </li>
             <li>
+              <span class="span-left hoverdoc">Scout Population:</span>
+              <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
+            </li>
+            <li>
               <span class="span-left hoverdoc">Speed:</span>
               <span class="span-right"><input id="in_speed" type="number" min=0 max=1 step=.001 /></span>
             </li>
@@ -85,16 +89,16 @@
         <div id="div_nestinteraction">
           <ul>
             <li>
-              <span class="span-left hoverdoc">Scout Population:</span>
-              <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
-            </li>
-            <li>
               <span class="span-left hoverdoc">Recruit Probability:</span>
               <span class="span-right"><input id="in_recruitprob" type="number" min=0 max=1 step=.001 /></span>
             </li>
             <li>
               <span class="span-left hoverdoc">Stay After Fail:</span>
-              <span class="span-right"><input id="in_stayhome" type="number" min=0 max=1 step=.01 /></span>
+              <span class="span-right"><input id="in_stayhomefail" type="number" min=0 max=1 step=.01 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Stay After Success:</span>
+              <span class="span-right"><input id="in_stayhomesuccess" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left hoverdoc">Avg. Time in Nest:</span>

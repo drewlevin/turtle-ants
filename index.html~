@@ -61,7 +61,7 @@
               <span class="span-right"><input id="in_initialpaths" type="checkbox" /></span>
             </li>
             <li>
-              <span class="span-left hoverdoc">Remember Food:</span>
+              <span class="span-left hoverdoc">Remember Path:</span>
               <span class="span-right"><input id="in_returntofood" type="checkbox" /></span>
             </li>
             <li>
@@ -94,7 +94,11 @@
             </li>
             <li>
               <span class="span-left hoverdoc">Stay After Fail:</span>
-              <span class="span-right"><input id="in_stayhome" type="number" min=0 max=1 step=.01 /></span>
+              <span class="span-right"><input id="in_stayhomefail" type="number" min=0 max=1 step=.01 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Stay After Success:</span>
+              <span class="span-right"><input id="in_stayhomesuccess" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
               <span class="span-left hoverdoc">Avg. Time in Nest:</span>

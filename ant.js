@@ -133,9 +133,14 @@ Ant.prototype.update = function()
           // If the ant found food there's a chance to send new ants out
           if (this.found_food) {
             nest.recruit(this);
+            // Chance to stop searching
+            if (Math.random() < STAY_HOME_SUCCESS) {
+              nest.returnHome();
+              return true;
+            }
           }
           // If the ant didn't find food there's a chance to stay home
-          else if (!this.found_food && Math.random() < STAY_HOME) {
+          else if (!this.found_food && Math.random() < STAY_HOME_FAIL) {
             nest.returnHome();
             return true;        // True means the ant stays home
           }

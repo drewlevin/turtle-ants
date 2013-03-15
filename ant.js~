@@ -4,7 +4,7 @@
 // Implementation of the Ant class.  Contains state information, an update function,
 // and a draw function.
 
-function Ant(_path) {
+function Ant(_dest) {
 
   // Public Variables
   this.path = (_dest == null) ? [] : _dest.getPath().slice(0); // slice for deep copy
@@ -133,9 +133,13 @@ Ant.prototype.update = function()
           // If the ant found food there's a chance to send new ants out
           if (this.found_food) {
             nest.recruit(this);
+            // Chance to stop searching
+            if (Math.random() < STAY_HOME_SUCCESS) {
+              return true;
+            }
           }
           // If the ant didn't find food there's a chance to stay home
-          else if (!this.found_food && Math.random() < STAY_HOME) {
+          else if (!this.found_food && Math.random() < STAY_HOME_FAIL) {
             nest.returnHome();
             return true;        // True means the ant stays home
           }
