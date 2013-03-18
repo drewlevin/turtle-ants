@@ -36,6 +36,8 @@ function Node(_parent, _depth, _isRight)
   this.in_left_x = WIDTH/2;
   this.in_left_y = HEIGHT/2;
 
+  var decay = 0;
+
   this.contains = function(_x, _y) 
   {
     return (Math.pow(this.x - _x, 2) + Math.pow(this.y - _y, 2) <= 
@@ -54,6 +56,20 @@ function Node(_parent, _depth, _isRight)
 
   this.update = function()
   {
+    if (this.food > 0) {
+      decay += Number(FOOD_DECAY);
+      while (decay >= 1 && this.food > 0) {
+        this.food -= 1;
+        decay -= 1;
+      }
+    }
+
+    if (this.food == 0 && this.right === null) {
+      if (Math.random() < NEW_FOOD_PROB) {
+        this.food = MAX_FOOD;
+      }
+    }
+
     if (PHEROMONE && this.pheromone > 0) {
       this.pheromone = this.pheromone * (1 - PHEROMONE_DECAY);
     }

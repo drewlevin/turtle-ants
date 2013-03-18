@@ -42,17 +42,27 @@ function getDescription(element)
     case 'in_branchprob':
       title = 'Branching Probability';
       desc = 'The probability that the tree continues to brach at each level once past the full branching depth.';
-      init = '0.6';
+      init = '0.5';
       break;
     case 'in_foodprob':
       title = 'Food Probability';
       desc = 'The probability that there will be food at any given leaf.';
-      init = '0.35';
+      init = '0.25';
       break;
     case 'in_foodamount':
       title = 'Food Amount';
       desc = 'The amount of food in each food patch.  Each ant consumes one food per trip.';
-      init = '1000';
+      init = '500';
+      break;
+    case 'in_fooddecay':
+      title = 'Food Decay';
+      desc = 'Each food patch decreases linearly by this amount each time step.';
+      init = '0.25';
+      break;
+    case 'in_newfoodprob':
+      title = 'Food Amount';
+      desc = 'Each empty leaf node has this probability of growing a new full food patch';
+      init = '0.00001';
       break;
     case 'in_population':
       title = 'Population';

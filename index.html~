@@ -41,6 +41,14 @@
               <span class="span-left hoverdoc">Food Amount:</span>
               <span class="span-right"><input id="in_foodamount" type="number" min=0 step=1 /></span>
             </li>
+            <li>
+              <span class="span-left hoverdoc">Food Decay Rate:</span>
+              <span class="span-right"><input id="in_fooddecay" type="number" min=0 step=.01 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Food Amount:</span>
+              <span class="span-right"><input id="in_foodamount" type="number" min=0 step=1 /></span>
+            </li>
           </ul>
         </div>
       </fieldset>
@@ -51,6 +59,10 @@
             <li>
               <span class="span-left hoverdoc">Population:</span>
               <span class="span-right"><input id="in_population" type="number" min=0 step=1 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Scout Population:</span>
+              <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
             </li>
             <li>
               <span class="span-left hoverdoc">Speed:</span>
@@ -84,10 +96,6 @@
         <legend><input id="in_nestinteraction" type="checkbox" /><span id="span_nestinteraction">Nest Interaction</input></span></legend>
         <div id="div_nestinteraction">
           <ul>
-            <li>
-              <span class="span-left hoverdoc">Scout Population:</span>
-              <span class="span-right"><input id="in_searching" type="number" min=0 step=1 /></span>
-            </li>
             <li>
               <span class="span-left hoverdoc">Recruit Probability:</span>
               <span class="span-right"><input id="in_recruitprob" type="number" min=0 max=1 step=.001 /></span>

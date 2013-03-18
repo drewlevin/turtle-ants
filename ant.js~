@@ -135,6 +135,7 @@ Ant.prototype.update = function()
             nest.recruit(this);
             // Chance to stop searching
             if (Math.random() < STAY_HOME_SUCCESS) {
+              nest.returnHome();
               return true;
             }
           }

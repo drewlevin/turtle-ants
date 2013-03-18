@@ -275,7 +275,7 @@ function sense(p)
   }
   // Logarithmic pheromone profile
   else if (SENSE_LOG) {
-    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-12.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
+    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-14.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
   }
   // Only checks to see which side is larger
   else if (SENSE_CONST) {

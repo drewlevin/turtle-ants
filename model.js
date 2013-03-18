@@ -1,12 +1,16 @@
 var WIDTH = 0;
 var HEIGHT = 0;
 
+var TIME = 0;
+
 // Environment
 var DEPTH = 10;
 var FULL_TREE_DEPTH = 4;
-var CHILD_PROB = 0.60;
-var FOOD_PROB = 0.35;
-var MAX_FOOD = 1000;
+var CHILD_PROB = 0.50;
+var FOOD_PROB = 0.25;
+var MAX_FOOD = 500;
+var FOOD_DECAY = 0.25;
+var NEW_FOOD_PROB = 0.00001;
 
 // Ants
 var NEST_ANTS = 1000;
@@ -250,6 +254,8 @@ function pause(e)
 function update()
 {
   if (RUNNING) {
+    TIME++;
+
     nest.update();
     root.update();
 
@@ -271,6 +277,11 @@ function render()
     ctx.fillStyle = '#EEE';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.drawImage(static_canvas, 0, 0);
+
+    ctx.fillStyle = '#222';
+    ctx.font = 'bold 20px courier';
+//    ctx.textBaseline = 'middle';
+    ctx.fillText('Time: ' + Math.floor(TIME / 10), 10, 20);
 
   //  for (n in food_nodes) {
   //    food_nodes[n].draw();
@@ -308,6 +319,8 @@ function init_pheromones(amount, node, path)
 
 function init()
 {
+  TIME = 0;
+
   picker = new Quad(0, 0, WIDTH, HEIGHT);
   root = new Node(null, 0, true);
 
@@ -339,6 +352,8 @@ function getInputValues()
   CHILD_PROB = $('#in_branchprob').val();
   FOOD_PROB = $('#in_foodprob').val();
   MAX_FOOD = $('#in_foodamount').val();
+  FOOD_DECAY = $('#in_fooddecay').val();
+  NEW_FOOD_PROB = $('#in_newfoodprob').val();
 
   NEST_ANTS = $('#in_population').val();
   ANT_SPEED = Number($('#in_speed').val());
@@ -392,6 +407,8 @@ function setInputValues()
   $('#in_branchprob').val(CHILD_PROB);
   $('#in_foodprob').val(FOOD_PROB);
   $('#in_foodamount').val(MAX_FOOD);
+  $('#in_fooddecay').val(FOOD_DECAY);
+  $('#in_newfoodprob').val(NEW_FOOD_PROB);
 
   $('#in_population').val(NEST_ANTS);
   $('#in_speed').val(ANT_SPEED);
