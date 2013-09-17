@@ -5,12 +5,12 @@ var TIME = 0;
 
 // Environment
 var DEPTH = 10;
-var FULL_TREE_DEPTH = 4;
-var CHILD_PROB = 0.50;
-var FOOD_PROB = 0.25;
-var MAX_FOOD = 500;
-var FOOD_DECAY = 0.25;
-var NEW_FOOD_PROB = 0.00001;
+var FULL_TREE_DEPTH =4;
+var CHILD_PROB = 0.5;
+var FOOD_PROB = 0.5;
+var MAX_FOOD = 1000;
+var FOOD_DECAY = 0.0;
+var NEW_FOOD_PROB = 0.0000;
 
 // Ants
 var NEST_ANTS = 1000;
@@ -107,7 +107,8 @@ var food_node_b_path;
 
 function buildTree(node, depth)
 {
-  if (depth > DEPTH - FULL_TREE_DEPTH || (depth > 0 && Math.random() < CHILD_PROB)) {
+  // Double branch
+  if (depth > DEPTH - FULL_TREE_DEPTH ) {
     node.right = new Node(node, node.depth + 1, true);
     node.left  = new Node(node, node.depth + 1, false);
 
@@ -116,9 +117,30 @@ function buildTree(node, depth)
 
     node.weight = node.right.weight + node.left.weight;
   } 
-  else if (Math.random() < FOOD_PROB) {
-    node.food = MAX_FOOD;
-    food_nodes.push(node);
+  // Single or double branch
+  else if (depth > 0) {
+    node.weight = 1;
+
+    // right child
+    if (Math.random() < CHILD_PROB) {
+      node.right = new Node(node, node.depth + 1, true);
+      buildTree(node.right, depth-1);
+      node.weight += node.right.weight;
+    }
+    // left child
+    if (Math.random() < CHILD_PROB) {
+      node.left = new Node(node, node.depth + 1, false);
+      buildTree(node.left, depth-1);
+      node.weight += node.left.weight;
+    }
+  }
+  // Leaf
+  if (node.right == null && node.left == null) {
+    node.weight = 10; 
+    if (Math.random() < FOOD_PROB) {
+      node.food = MAX_FOOD;
+      food_nodes.push(node);
+    }
   }
 }
 
@@ -129,19 +151,18 @@ function positionTree(node)
 
   var skew = BRANCH_WIDTH / 2 + ANT_RADIUS;
 
-  // Branch
-  if (node.right != null && node.left != null) {
+  // Branch right
+  if (node.right != null) {
 
-    var right_proportion = node.right.weight / (node.right.weight + node.left.weight);
+    var right_proportion = 1;
+    if (node.left != null) {
+      right_proportion = node.right.weight / (node.right.weight + node.left.weight);
+    }
 
     node.right.theta = node.theta - node.width * (1-right_proportion) / 2;
     node.right.width = node.width * right_proportion;
 
-    node.left.theta = node.theta + node.width * right_proportion / 2;  
-    node.left.width = node.width * (1-right_proportion);
-  
     positionTree(node.right);
-    positionTree(node.left);
 
     // Ignore the root for the parent positions
     var theta;
@@ -159,34 +180,46 @@ function positionTree(node)
     node.out_right_y = node.y + skew * Math.sin(theta);
     node.in_right_x = node.x - skew * Math.cos(theta);
     node.in_right_y = node.y - skew * Math.sin(theta);
+  }
 
+  // Branch left
+  if (node.left != null) {
+
+    var left_proportion = 1;
+    if (node.right != null) {
+      left_proportion = node.left.weight / (node.right.weight + node.left.weight);
+    }
+
+    node.left.theta = node.theta + node.width * (1-left_proportion) / 2;  
+    node.left.width = node.width * left_proportion;
+  
+    positionTree(node.left);
+
+    // Ignore the root for the parent positions
+    var theta;
+    if (node.parent != null)
+    {
+      theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+      node.out_parent_x = node.x + skew * Math.cos(theta);
+      node.out_parent_y = node.y + skew * Math.sin(theta);
+      node.in_parent_x = node.x - skew * Math.cos(theta);
+      node.in_parent_y = node.y - skew * Math.sin(theta);
+    }
+    
     theta = Math.atan2(node.left.y - node.y, node.left.x - node.x) + Math.PI/2;
     node.out_left_x = node.x + skew * Math.cos(theta);
     node.out_left_y = node.y + skew * Math.sin(theta);
     node.in_left_x = node.x - skew * Math.cos(theta);
     node.in_left_y = node.y - skew * Math.sin(theta);
-/*
-    var out_theta = Math.atan2((node.right.y + node.left.y)/2 - node.y, 
-                               (node.right.x + node.left.x)/2 - node.x) + Math.PI/2;
+  }
 
-    node.out_x = node.x + 1.5 * ANT_RADIUS * Math.cos(out_theta);
-    node.out_y = node.y + 1.5 * ANT_RADIUS * Math.sin(out_theta);
-    node.in_x = node.x - 1.5 * ANT_RADIUS * Math.cos(out_theta);
-    node.in_y = node.y - 1.5 * ANT_RADIUS * Math.sin(out_theta);
-*/
   // Leaf
-  } else if (node.parent != null) {
+  if (node.right == null && node.left == null && node.parent != null) {
     var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
     node.out_parent_x = node.x + skew * Math.cos(theta);
     node.out_parent_y = node.y + skew * Math.sin(theta);
     node.in_parent_x = node.x - skew * Math.cos(theta);
     node.in_parent_y = node.y - skew * Math.sin(theta);
-/*
-    node.out_x = node.x + 1.5 * ANT_RADIUS * Math.cos(node.theta+(Math.PI/2));
-    node.out_y = node.y + 1.5 * ANT_RADIUS * Math.sin(node.theta+(Math.PI/2));
-    node.in_x = node.x + 1.5 * ANT_RADIUS * Math.cos(node.theta-(Math.PI/2));
-    node.in_y = node.y + 1.5 * ANT_RADIUS * Math.sin(node.theta-(Math.PI/2));
-*/
   }
 
   if (node.parent != null) {

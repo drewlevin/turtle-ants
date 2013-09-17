@@ -77,7 +77,7 @@ Ant.prototype.update = function()
     if (!this.returning) 
     {
       // If the ant is at a leaf (turn around)
-      if (this.dest.right == null) 
+      if (this.dest.right == null && this.dest.left == null) 
       {
         var temp_origin = this.dest;
 
@@ -113,7 +113,9 @@ Ant.prototype.update = function()
       
       // If Path Interaction, check to see if the ant stays
       if (PATH_INTERACTION) {
-        if (this.found_food && !this.origin.has_path_ant && !this.directing && Math.random() < STAY_PROB) {
+        if (this.found_food && !this.origin.has_path_ant && !this.directing && 
+            this.dest.right != null && this.dest.left != null &&
+            Math.random() < STAY_PROB) {
           this.directing = true;
           this.origin.has_path_ant = true;
           this.dist = 0.8;
@@ -183,8 +185,15 @@ Ant.prototype.branch = function()
       this.path.splice(this.dest.depth, this.path.length - this.dest.depth - 1);
     }
     
+    // If there's only one possible direction
+    if (this.dest.right != null && this.dest.left == null) {
+      d = true;      
+    }
+    else if (this.dest.right == null && this.dest.left != null) {
+      d = false;
+    }
     // If using pheromone trails to weight the decision
-    if (PHEROMONE) {
+    else if (PHEROMONE) {
       var r = sense(this.dest.right.pheromone);
       var l = sense(this.dest.left.pheromone);
       if (!SENSE_CONST) {

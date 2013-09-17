@@ -60,8 +60,8 @@ function getDescription(element)
       init = '0.25';
       break;
     case 'in_newfoodprob':
-      title = 'Food Amount';
-      desc = 'Each empty leaf node has this probability of growing a new full food patch';
+      title = 'New Food Probability';
+      desc = 'Each empty leaf node has this probability of growing a new full food patch each time step';
       init = '0.00001';
       break;
     case 'in_population':
@@ -156,7 +156,6 @@ function getDescription(element)
   var text =
     '<p class="title">' +
         '<span class="bold">' + title + ': </span>' + 
-//        '<span class="italic">(' + range + ')</span>' +
         '<span class="italic">' + range + '</span>' +
     '</p>' + 
     '<p class="desc">' + desc + '</p><br/>' +

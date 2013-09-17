@@ -64,7 +64,7 @@ function Node(_parent, _depth, _isRight)
       }
     }
 
-    if (this.food == 0 && this.right === null) {
+    if (this.food == 0 && this.right === null && this.left === null) {
       if (Math.random() < NEW_FOOD_PROB) {
         this.food = MAX_FOOD;
       }
@@ -74,8 +74,10 @@ function Node(_parent, _depth, _isRight)
       this.pheromone = this.pheromone * (1 - PHEROMONE_DECAY);
     }
 
-    if (this.right != null && this.left != null) {
+    if (this.right != null) {
       this.right.update();
+    }
+    if (this.left != null) {
       this.left.update();
     }
 
@@ -191,8 +193,10 @@ function Node(_parent, _depth, _isRight)
       ctx.fillText(this.ants, this.text_x, this.text_y);
     }
 
-    if (this.right != null && this.left != null) {
+    if (this.right != null) {
       this.right.draw();
+    }
+    if (this.left != null) {
       this.left.draw();
     }
   }
