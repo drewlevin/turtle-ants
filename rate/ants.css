@@ -1,0 +1,197 @@
+#main_container {
+  position: relative;
+  display: block;
+  width: 1320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#left_title {
+  position: absolute;
+  top: 10px;
+  left: 150px;
+}
+
+#flot_left {
+  position: absolute;
+  display: inline-block;
+  margin: 0px;
+  width: 350px;
+  height: 300px;
+  top: 55px;
+}
+
+#right_title {
+  position: absolute;
+  top: 370px;
+  left: 145px;
+}
+
+#flot_right {
+  position: absolute;
+  display: inline-block;
+  margin: 0px;
+  width: 350px;
+  height: 300px;
+  top: 415px;
+}
+
+#canvas {
+  position: absolute;
+  border: 2px solid black;
+  display: inline-block;
+  margin: 0px;
+  width: 720px;
+  height: 720px;
+  left: 360px;
+}
+
+#documentation {
+  position: absolute;
+  width:  260px;
+  border: 2px solid black;
+  z-index: 10;
+  border-radius: 10px;
+  background-color: #B0B0F0;
+  display: none;
+  padding: 10px;
+}
+
+#controls {
+  position: absolute;
+  top: 40px;
+  left: 1090px;
+  height: 600px;
+  width: 220px;
+  border: 2px solid green;
+  margin: 0px;
+  display: inline-block;
+  vertical-align: top;
+  overflow: auto;
+}
+
+#button_start {
+  position: absolute;
+  left: 1095px;
+  top: 5px;
+}
+
+#button_reset {
+  position: absolute;
+  left: 1205px;
+  top: 5px;
+}
+
+#button_apply {
+  position: absolute;
+  left: 1090px;
+  top: 655px;
+}
+
+#button_revert {
+  position: absolute;
+  left: 1090px;
+  top: 690px;
+}
+
+.button-full {
+  width: 225px;
+  height: 30px;
+}
+
+.button-left {
+  width: 100px;
+  height: 30px;
+}
+
+.button-right {
+  width: 100px;
+  height: 30px;
+}
+
+ul {
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+} 
+
+li {
+  list-style: none;
+  font-weight: normal;
+  
+}
+
+fieldset {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 3px;
+  width: 160px;
+}
+
+fieldset[disabled="true"] {
+  background-color: #EEE;
+}
+
+fieldset[disabled="false"] {
+
+}
+
+fieldset legend {
+  cursor: pointer;
+  border: 2px solid #CCC;
+}
+
+input[type="number"] {
+  width: 100%;
+  font-size: 8pt;
+  text-align: right;
+  padding: 2px;
+}
+
+.span-left {
+  width: 60%;
+  height: 18pt;
+  float: left;
+  text-align: left;
+  font-size: 9pt;
+}
+
+.span-right {
+  width: 35%;
+  height: 16pt;
+  float: right;
+  text-align: right;
+}
+
+.hoverdoc {
+  cursor: help;
+}
+
+
+
+.title {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.range {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  left-padding: 2em;
+}
+
+.desc {
+  text-indent: 2em;
+  margin: 0;
+  padding: 0;
+}
