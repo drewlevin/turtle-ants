@@ -320,6 +320,8 @@ function render()
   //    food_nodes[n].draw();
   //  }
 
+    picker.draw();
+
     root.draw();
     
     if (hover_node != null)

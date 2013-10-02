@@ -78,4 +78,22 @@ function Quad(_x, _y, _w, _h)
       return null;
     }
   }
+
+  this.draw = function()
+  {
+    if (children == null) {
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.0)";;
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'red';
+      ctx.stroke();
+    }
+    else {
+      for (var q in children) {
+        children[q].draw();
+      } 
+    }
+  }
 }
