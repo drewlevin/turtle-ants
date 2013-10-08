@@ -52,6 +52,10 @@ Ant.prototype.update = function()
       this.x = this.origin.out_left_x + this.dist * (this.dest.out_parent_x - this.origin.out_left_x);
       this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
     }
+
+    if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+      this.dest.observer.addOutgoing();
+    }
   } 
   // If moving home
   else {
@@ -63,6 +67,10 @@ Ant.prototype.update = function()
       this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
     }
    
+    if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+      this.origin.observer.addIncoming();
+    }
+
     if (PHEROMONE && this.found_food) {
       this.origin.pheromone++;
     }

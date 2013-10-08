@@ -1,3 +1,8 @@
+var date = new Date();
+
+function sqr(x) { return x * x; }
+function dist2(_x1, _y1, _x2, _y2) { return sqr(_x1-_x2) + sqr(_y1-_y2); }
+
 function Node(_parent, _depth, _isRight) 
 {
   this.parent = _parent;
@@ -6,6 +11,8 @@ function Node(_parent, _depth, _isRight)
   this.right = null;
   this.left = null;
   this.has_path_ant = false;
+
+  this.observer = null;
 
   this.weight = 1;
   this.width = 2 * Math.PI;
@@ -22,6 +29,10 @@ function Node(_parent, _depth, _isRight)
   this.y = (HEIGHT/2);
   this.text_x = this.x;
   this.text_y = this.y;
+  this.observation_x1 = this.x;
+  this.observation_y1 = this.y;
+  this.observation_x2 = this.x;
+  this.observation_y2 = this.y;
 
   this.out_parent_x = WIDTH/2;
   this.out_parent_y = HEIGHT/2;
@@ -42,6 +53,26 @@ function Node(_parent, _depth, _isRight)
   {
     return (Math.pow(this.x - _x, 2) + Math.pow(this.y - _y, 2) <= 
       Math.pow(NODE_RADIUS, 2));
+  }
+
+  this.edgeContains = function(_x, _y)
+  {
+    var dist;
+    // rule out the root
+    if (this.parent != null) {
+      var l2 = dist2(this.x, this.y, this.parent.x, this.parent.y);
+      if (l2 == 0) { 
+        dist = dist2(_x, _y, this.x, this.y);
+      }
+      else {
+        var t = ((_x - this.x) * (this.parent.x - this.x) + (_y - this.y) * (this.parent.y - this.y)) / l2;
+        if (t < 0) dist = dist2(_x, _y, this.x, this.y);
+        else if (t > 1) dist = dist2(_x, _y, this.parent.x, this.parent.y);
+        else dist = dist2(_x, _y, this.x + t * (this.parent.x-this.x), this.y + t * (this.parent.y-this.y));
+      }
+      return dist <= BRANCH_RADIUS * BRANCH_RADIUS;
+    }
+    return false;
   }
 
   this.getPath = function() {
@@ -140,11 +171,36 @@ function Node(_parent, _depth, _isRight)
   
   this.drawSelected = function(_ctx)
   {
-    _ctx.fillStyle = '#B93';
+    _ctx.fillStyle = "rgb(60, 160, 200)";
     _ctx.beginPath();
-    _ctx.arc(this.x, this.y, NODE_DRAW_RADIUS+5, 0, Math.PI*2, true); 
+    _ctx.arc(this.x, this.y, NODE_RADIUS, 0, Math.PI*2, true); 
     _ctx.closePath();
     _ctx.fill();  
+
+    _ctx.fillStyle = '#862';
+    _ctx.beginPath();
+    _ctx.arc(this.x, this.y, NODE_DRAW_RADIUS, 0, Math.PI*2, true); 
+    _ctx.closePath();
+    _ctx.fill();  
+  }
+
+  this.drawSelectedEdge = function(_ctx)
+  {
+//    var t = date.getMilliseconds() / 1000.0;
+
+    _ctx.lineWidth = BRANCH_RADIUS;
+    _ctx.strokeStyle = "rgb(60, 160, 200)";
+    _ctx.beginPath();
+    _ctx.moveTo(this.x, this.y);
+    _ctx.lineTo(this.parent.x, this.parent.y);
+    _ctx.stroke();
+
+    _ctx.lineWidth = BRANCH_WIDTH;
+    _ctx.strokeStyle = "rgb(100, 80, 30)";
+    _ctx.beginPath();
+    _ctx.moveTo(this.x, this.y);
+    _ctx.lineTo(this.parent.x, this.parent.y);
+    _ctx.stroke();
   }
 
   this.draw = function()
@@ -191,6 +247,43 @@ function Node(_parent, _depth, _isRight)
       ctx.font = 'bold 14px ariel';
       ctx.textBaseline = 'middle';
       ctx.fillText(this.ants, this.text_x, this.text_y);
+    }
+
+    // Draw an observation station
+    if (this.observer != null) {
+      ctx.lineWidth = BRANCH_WIDTH;
+      ctx.strokeStyle = "rgb(63, 63, 255)";
+      ctx.beginPath();
+      ctx.moveTo(this.observation_x1, this.observation_y1);
+      ctx.lineTo(this.observation_x2, this.observation_y2);
+      ctx.stroke();
+
+      // Draw eye icon and id
+      ctx.drawImage(eye_icon, this.observation_x1-8, this.observation_y1-8);
+
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 12px ariel';
+      ctx.textBaseline = 'middle';
+      // place the id in the correct quadrant
+      var width_correction = Math.floor(Math.log(this.observer.id)/Math.LN10) * 4;
+
+      if (this.observation_x1 > this.observation_x2) {
+        if (this.observation_y1 > this.observation_y2) {
+          ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1+8);
+        }
+        else {
+          ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1-8);
+        }
+      }
+      else
+      {
+        if (this.observation_y1 > this.observation_y2) {
+          ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1+8);
+        }
+        else {
+          ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1-8);
+        }
+      }
     }
 
     if (this.right != null) {

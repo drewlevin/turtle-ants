@@ -47,17 +47,26 @@ var SENSE_CONST = false;
 
 // Graphic constants
 var NODE_RADIUS = 7;
+var BRANCH_RADIUS = 7;
 var ANT_RADIUS = 2;
 var BRANCH_WIDTH = 3;
 var NODE_DRAW_RADIUS = 4;
 var NEST_RADIUS = 8;
 var FOOD_DRAW_RADIUS = 3;
+var OBSERVATION_LENGTH = 20;
 
-var NODE_LIMIT = 3;
+var QUAD_LIMIT = 4;
 
 var SHOW_ANT_COUNT = false;
 
 var RUNNING = true;
+
+var PLOT_OPTIONS = 
+    {
+      xaxis: {tickSize: 100}, 
+      yaxis: {min: 0, tickSize: 5}
+    };
+
 
 var l = 35;
 
@@ -69,15 +78,20 @@ var ctx;
 var static_canvas;
 var static_ctx;
 var hover_node = null;
+var hover_edge = null;
 
 var food_nodes = [];
 var tree_ants = [];
 var lymph_ants = [];
-var nest =  null;
+var nest = null;
 var food_node_a;
 var food_node_b;
 var food_node_a_path;
 var food_node_b_path;
+
+var observer_array = [];
+var observer_id = 1;
+var eye_icon = null;
 
 // Request Animation Frame Shim
 (function() {
@@ -231,11 +245,50 @@ function positionTree(node)
       node.text_x = (node.x + node.parent.x) / 2 + (2 * skew * Math.cos(theta));
       node.text_y = (node.y + node.parent.y) / 2 + (2 * skew * Math.sin(theta));
     }
+
+    var mid_x = (node.parent.x + node.x) / 2.0;
+    var mid_y = (node.parent.y + node.y) / 2.0;
+
+    node.observation_x1 = mid_x + (OBSERVATION_LENGTH / 2.0) * Math.cos(theta);
+    node.observation_y1 = mid_y + (OBSERVATION_LENGTH / 2.0) * Math.sin(theta);
+    node.observation_x2 = mid_x - (OBSERVATION_LENGTH / 2.0) * Math.cos(theta);
+    node.observation_y2 = mid_y - (OBSERVATION_LENGTH / 2.0) * Math.sin(theta);    
   }
 
   picker.addNode(node);
+  picker.addEdge(node);
 }
 
+function createObserver(_edge) 
+{
+  if (_edge.observer == null) {
+    _edge.observer = new Observer(observer_id, _edge);
+    observer_id++;
+
+    _edge.observer.createDiv(observer_array.length);
+
+    observer_array.push(_edge.observer);
+  }
+}
+
+function removeObserver(_id)
+{
+  var index = 0;
+  for (o in observer_array) {
+    if (_id == observer_array[o].id) {
+      index = o;
+      break;
+    }
+  }
+  
+  var removed_observer = observer_array.splice(index, 1);
+  removed_observer[0].div.remove();
+  removed_observer[0].edge.observer = null;
+
+  for (o in observer_array) {
+    observer_array[o].div.animate({'top': (45 + 175*o) + 'px'}, 500);
+  }
+}
 
 function mouseMove(e)
 {
@@ -244,6 +297,19 @@ function mouseMove(e)
   var y = e.pageY - off.top;
 
   hover_node = picker.getNode(x, y);
+  hover_edge = picker.getEdge(x, y);
+}
+
+function mouseClick(e)
+{
+  if (hover_edge != null) {
+    if (hover_edge.observer == null) {
+      createObserver(hover_edge);
+    }
+    else {
+      removeObserver(hover_edge.observer.id);
+    }
+  }
 }
 
 function apply_changes(e)
@@ -267,6 +333,12 @@ function reset(e)
   static_canvas.width = WIDTH;
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
+
+  for (o in observer_array) {
+    observer_array[o].div.remove();
+  }
+  observer_array = [];
+  observer_id = 1;
 
   init();
 }
@@ -298,6 +370,10 @@ function update()
       }
     }
 
+    for (o in observer_array) {
+      observer_array[o].update();
+    }
+
     setTimeout(update, 16);
   }
 }
@@ -320,18 +396,27 @@ function render()
   //    food_nodes[n].draw();
   //  }
 
-    picker.draw();
+//    picker.draw();
 
     root.draw();
     
     if (hover_node != null)
       hover_node.drawSelected(ctx);
+    else if (hover_edge != null)
+      hover_edge.drawSelectedEdge(ctx);
 
     for (a in tree_ants) {
       tree_ants[a].draw();
     }
 
     nest.draw();
+
+    for (o in observer_array) {
+      $.plot(observer_array[o].flot, 
+             [ { label: 'Outgoing', data: observer_array[o].getOutgoingSeries(50) } , 
+               { label: 'Incoming', data: observer_array[o].getIncomingSeries(50) } ] , 
+             PLOT_OPTIONS);
+    }
   }
 }
 
@@ -378,6 +463,9 @@ function init()
   nest = new Nest(NEST_ANTS, SEARCHING);
 
   root.drawTree(static_ctx);
+
+  eye_icon = new Image();
+  eye_icon.src = 'img/eye.png';
 }
 
 function getInputValues()
@@ -500,7 +588,9 @@ $(document).ready(function() {
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
   
-//  $('#canvas').mousemove(function(e) { mouseMove(e); });
+  $('#canvas').mousemove(function(e) { mouseMove(e); });
+  $('#canvas').click(function(e) { mouseClick(e); });
+//  $('#canvas').click(function(e) { mouseClick(e); });
 
   $('#button_start').click(function(e) { pause(e) });
   $('#button_reset').click(function(e) { reset(e) });

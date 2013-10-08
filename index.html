@@ -3,7 +3,9 @@
 <head>
   <title>Ant Simulation</title>
   <link href="ants.css" rel="stylesheet" type="text/css" />
-  <script id="jquery" src="jquery-1.8.2.min.js" type="text/javascript"></script>
+  <script id="jquery"    src="jquery-1.8.2.min.js" type="text/javascript"></script>
+  <script id="flot"      src="jquery.flot.min.js" type="text/javascript"></script>
+  <script id="scr_obs"   src="observer.js" type="text/javascript"></script>  
   <script id="scr_node"  src="node.js"     type="text/javascript"></script>
   <script id="scr_quad"  src="quad.js"     type="text/javascript"></script>
   <script id="scr_nest"  src="nest.js"     type="text/javascript"></script>
@@ -13,6 +15,7 @@
 </head>
 <body>
   <div id="main_container">
+    <div id="output"><h2>Output</h2></div>
     <canvas id="canvas" width="720px" height="720px" border="2px solid black"></canvas>
     <button class="button-left" id="button_start">Pause</button>
     <button class="button-right" id="button_reset">Reset</button>

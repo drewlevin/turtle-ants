@@ -1,9 +1,19 @@
 #main_container {
   position: relative;
   display: block;
-  width: 960px;
+  width: 1200px;
   margin-left: auto;
   margin-right: auto;
+}
+
+#output {
+  position: absolute;
+  border: 2px solid green;
+  display: inline-block;
+  overflow: auto;
+  margin: 0px;
+  width: 230px;
+  height: 720px;
 }
 
 #canvas {
@@ -11,6 +21,7 @@
   border: 2px solid black;
   display: inline-block;
   margin: 0px;
+  left: 240px;
 }
 
 #documentation {
@@ -27,7 +38,7 @@
 #controls {
   position: absolute;
   top: 40px;
-  left: 730px;
+  left: 970px;
   height: 600px;
   width: 220px;
   border: 2px solid green;
@@ -39,25 +50,25 @@
 
 #button_start {
   position: absolute;
-  left: 735px;
+  left: 975px;
   top: 5px;
 }
 
 #button_reset {
   position: absolute;
-  left: 845px;
+  left: 1085px;
   top: 5px;
 }
 
 #button_apply {
   position: absolute;
-  left: 730px;
+  left: 970px;
   top: 655px;
 }
 
 #button_revert {
   position: absolute;
-  left: 730px;
+  left: 970px;
   top: 690px;
 }
 
@@ -161,4 +172,43 @@ input[type="number"] {
   text-indent: 2em;
   margin: 0;
   padding: 0;
+}
+
+h2 {
+  margin: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+h4 {
+  margin: 0px;
+  text-align: center;
+}
+
+.img_close {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 3px;
+  left: 180px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.output_container {
+  position: absolute;
+  width: 215px;
+  height: 175px;
+  left: 0px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.flot {
+  position: absolute;
+  width: 210px;
+  height: 160px;
+  top: 20px;
+  left: 1px;
+  margin: 0px;
 }
