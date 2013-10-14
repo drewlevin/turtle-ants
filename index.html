@@ -5,6 +5,7 @@
   <link href="ants.css" rel="stylesheet" type="text/css" />
   <script id="jquery"    src="jquery-1.8.2.min.js" type="text/javascript"></script>
   <script id="flot"      src="jquery.flot.min.js" type="text/javascript"></script>
+  <script id="random"    src="random.js"   type="text/javascript"></script>
   <script id="scr_obs"   src="observer.js" type="text/javascript"></script>  
   <script id="scr_node"  src="node.js"     type="text/javascript"></script>
   <script id="scr_quad"  src="quad.js"     type="text/javascript"></script>
@@ -15,11 +16,39 @@
 </head>
 <body>
   <div id="main_container">
-    <div id="output"><h2>Output</h2></div>
+    <div id="output"><h2><input id="in_output" type="checkbox" /> Output</h2></div>
     <canvas id="canvas" width="720px" height="720px" border="2px solid black"></canvas>
-    <button class="button-left" id="button_start">Pause</button>
+    <button class="button-left" id="button_start">Start</button>
     <button class="button-right" id="button_reset">Reset</button>
     <div id="controls">
+      <fieldset>
+        <legend id="lgnd_constants">Model Constants</legend>
+        <div id="div_constants">
+          <ul>
+            <li>
+              <span class="span-left hoverdoc">Seed Phrase:</span>
+              <span class="span-right"><input id="in_seed" type="text" /></span>
+            </li>
+          </ul>
+      </fieldset>
+      <fieldset>
+        <legend id="lgnd_reports">Reports</legend>
+        <div id="div_reports">
+          <ul>
+            <li>
+              <span class="span-left hoverdoc">Obesrvations:</span>
+              <span class="span-right"><input id="in_observations" type="number" min=0 step=1 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Obs. Rate:</span>
+              <span class="span-right"><input id="in_obsrate" type="number" min=0 step=1 /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Obs. Length:</span>
+              <span class="span-right"><input id="in_obslength" type="number" min=0 step=1 /></span>
+            </li>
+          </ul>
+      </fieldset>
       <fieldset>
         <legend id="lgnd_environment">Environment</legend>
         <div id="div_environment">

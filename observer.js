@@ -4,6 +4,8 @@ function Observer(_id, _edge) {
   this.div = null;
   this.flot = null;
 
+  var SMOOTH_LENGTH = 20;
+
   var time = 0;
 
   var outgoing_bin = 0;
@@ -33,6 +35,9 @@ function Observer(_id, _edge) {
 
     // Update the every 10s
     if (time % 10 === 0) {
+      var outgoing_smoothed_point;
+      var incoming_smoothed_point;
+
       var outgoing_point = [time, outgoing_bin];
       var incoming_point = [time, incoming_bin];
 
@@ -41,6 +46,25 @@ function Observer(_id, _edge) {
 
       incoming.push(incoming_point);
       incoming_length++;
+
+      if (incoming_length == 1) {
+        incoming_smoothed_point = [time, incoming_bin / SMOOTH_LENGTH];
+        outgoing_smoothed_point = [time, outgoing_bin / SMOOTH_LENGTH];
+      }
+      else if (incoming_length <= SMOOTH_LENGTH) {
+        incoming_smoothed_point = [time, incoming_smoothed[incoming_length-2][1] + incoming_bin / SMOOTH_LENGTH];
+        outgoing_smoothed_point = [time, outgoing_smoothed[outgoing_length-2][1] + outgoing_bin / SMOOTH_LENGTH];
+      }
+      else {
+//console.log(incoming_length, incoming, incoming_smoothed);
+        incoming_smoothed_point = 
+          [time, incoming_smoothed[incoming_length-2][1] + (incoming_bin - incoming[incoming_length-SMOOTH_LENGTH-1][1]) / SMOOTH_LENGTH];
+        outgoing_smoothed_point = 
+          [time, outgoing_smoothed[outgoing_length-2][1] + (outgoing_bin - outgoing[outgoing_length-SMOOTH_LENGTH-1][1]) / SMOOTH_LENGTH];
+      }
+
+      incoming_smoothed.push(incoming_smoothed_point);
+      outgoing_smoothed.push(outgoing_smoothed_point);
 
       outgoing_bin = 0;
       incoming_bin = 0;
@@ -59,6 +83,18 @@ function Observer(_id, _edge) {
     return incoming.slice(incoming_length - return_len);
   }
 
+  this.getOutgoingSmoothed = function(_len)
+  {
+    var return_len = Math.min(outgoing_length, _len);
+    return outgoing_smoothed.slice(outgoing_length - return_len);
+  }
+
+  this.getIncomingSmoothed = function(_len)
+  {
+    var return_len = Math.min(incoming_length, _len);
+    return incoming_smoothed.slice(incoming_length - return_len);
+  }
+
   this.createDiv = function(_index)
   {
     var top = 45+(175*_index);
@@ -73,7 +109,10 @@ function Observer(_id, _edge) {
     img.click(generateRemoveCall(this.id));
 
     this.flot = $('<div></div>', {'class': 'flot'}).appendTo(this.div);
-    this.div.appendTo('#output');
+
+    if (SHOW_OUTPUT) {
+      this.div.appendTo('#output');
+    }
   }
 
   function generateRemoveCall(_id) {

@@ -75,8 +75,7 @@ function Nest(_num_ants, _num_scouts)
     ctx.fillStyle = '#222';
     ctx.font = 'bold 20px ariel';
     ctx.textBaseline = 'middle';
-    ctx.fillText(num_ants + queued_ants.length, WIDTH/2 + NEST_RADIUS + 10, HEIGHT/2);
-
+    ctx.fillText(Number(num_ants) + queued_ants.length, WIDTH/2 + NEST_RADIUS + 10, HEIGHT/2);
   }
   
   this.returnHome = function()

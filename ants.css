@@ -6,6 +6,14 @@
   margin-right: auto;
 }
 
+#report {
+  position: absolute;
+  border: 2px solid black;
+  margin: 0px;
+  width: 1200px;
+  top: 730px;
+}
+
 #output {
   position: absolute;
   border: 2px solid green;
@@ -126,6 +134,13 @@ input[type="number"] {
   padding: 2px;
 }
 
+input[type="text"] {
+  width: 100%;
+  font-size: 8pt;
+  text-align: right;
+  padding: 2px;
+}
+
 .span-left {
   width: 60%;
   height: 18pt;
@@ -136,7 +151,7 @@ input[type="number"] {
 
 .span-right {
   width: 35%;
-  height: 16pt;
+  height: 18pt;
   float: right;
   text-align: right;
 }
@@ -175,7 +190,8 @@ input[type="number"] {
 }
 
 h2 {
-  margin: 5px;
+  margin: 0px;
+  margin-top: 5px;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -210,5 +226,23 @@ h4 {
   height: 160px;
   top: 20px;
   left: 1px;
+  margin: 0px;
+}
+
+.report_container {
+  position: absolute;
+  width: 1190px;
+  height: 200px;
+  left: 5px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.report_flot {
+  position: absolute;
+  width: 1190px;
+  height: 180px;
+  top: 20px;
+  left: 4px;
   margin: 0px;
 }

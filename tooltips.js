@@ -29,6 +29,26 @@ function getDescription(element)
 
   switch(id)
   {
+    case 'in_seed':
+      title = 'RNG Seed';
+      desc = 'Sets the initial seed for the random number generator';
+      init = 'Ants!';
+      break;
+    case 'in_observations':
+      title = 'Observations';
+      desc = 'Sets the total number of obsrevations taken.  The model will automatically stop after the last observation unless this value is set to 0.';
+      init = '0';
+      break;
+    case 'in_obsrate':
+      title = 'Observation Rate';
+      desc = 'Sets the rate at which observations are taken (i.e. every N time steps).';
+      init = '600';
+      break;
+    case 'in_obslength':
+      title = 'Length of Observation';
+      desc = 'Controls over what period of time a single observation is taken';
+      init = '60';
+      break;
     case 'in_treedepth':
       title = 'Tree Depth';
       desc = 'Sets the maximum depth of the branching tree.';

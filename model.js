@@ -3,6 +3,17 @@ var HEIGHT = 0;
 
 var TIME = 0;
 
+// Constants
+var SEED = 'Ants!';
+
+// Output Control
+var SHOW_OUTPUT = true
+
+// Report Generation
+var NUM_OBSERVATIONS = 6;
+var OBSERVATION_RATE = 600;
+var OBSERVATION_TIME = 60;
+
 // Environment
 var DEPTH = 10;
 var FULL_TREE_DEPTH =4;
@@ -59,7 +70,9 @@ var QUAD_LIMIT = 4;
 
 var SHOW_ANT_COUNT = false;
 
-var RUNNING = true;
+var RUNNING = false;
+
+var GENERATED_REPORT = false;
 
 var PLOT_OPTIONS = 
     {
@@ -259,6 +272,39 @@ function positionTree(node)
   picker.addEdge(node);
 }
 
+function generateReports() 
+{
+  if (observer_array.length > 0 && !GENERATED_REPORT) {
+
+    GENERATED_REPORT = true;
+
+    var report_flot_array = [];
+
+    var report_div = $('<div id="report"></div>').css({'height': '0px'}).appendTo('#main_container');
+    report_div.animate({'height': (5+205*observer_array.length)+'px'}, 1000);
+
+    for (o in observer_array) {
+      var top = 5+(205*o);
+
+      var div = $('<div></div>', {'class': 'report_container'}).css({'top': top+'px'});
+
+      $('<h4>Observer '+ observer_array[o].id +'</h4>').appendTo(div);
+
+      report_flot_array.push($('<div></div>', {'class': 'report_flot'}).appendTo(div));
+
+      div.appendTo(report_div);
+
+      $.plot(report_flot_array[o], 
+             [ { label: 'Outgoing', data: observer_array[o].getOutgoingSeries(TIME) } , 
+               { label: 'Incoming', data: observer_array[o].getIncomingSeries(TIME) } , 
+               { label: 'Outgoing Smoothed', data: observer_array[o].getOutgoingSmoothed(TIME) } , 
+               { label: 'Incoming Smoothed', data: observer_array[o].getIncomingSmoothed(TIME) } ] , 
+             PLOT_OPTIONS);
+
+    }
+  }
+}
+
 function createObserver(_edge) 
 {
   if (_edge.observer == null) {
@@ -298,6 +344,10 @@ function mouseMove(e)
 
   hover_node = picker.getNode(x, y);
   hover_edge = picker.getEdge(x, y);
+
+  if (!RUNNING) {
+    render();
+  }
 }
 
 function mouseClick(e)
@@ -374,7 +424,14 @@ function update()
       observer_array[o].update();
     }
 
-    setTimeout(update, 16);
+    if (NUM_OBSERVATIONS > 0 && TIME >= NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) {
+      RUNNING = false;
+      $('#button_start').html("Start");
+      generateReports();
+    }
+    else {
+      setTimeout(update, 16);
+    }
   }
 }
 
@@ -382,35 +439,37 @@ function render()
 {
   if (RUNNING) {
     requestAnimationFrame(render);
+  }
 
-    ctx.fillStyle = '#EEE';
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.drawImage(static_canvas, 0, 0);
+  ctx.fillStyle = '#EEE';
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.drawImage(static_canvas, 0, 0);
 
-    ctx.fillStyle = '#222';
-    ctx.font = 'bold 20px courier';
+  ctx.fillStyle = '#222';
+  ctx.font = 'bold 20px courier';
 //    ctx.textBaseline = 'middle';
-    ctx.fillText('Time: ' + Math.floor(TIME / 10), 10, 20);
+  ctx.fillText('Time: ' + Math.floor(TIME / 1), 10, 20);
 
-  //  for (n in food_nodes) {
-  //    food_nodes[n].draw();
-  //  }
+//  for (n in food_nodes) {
+//    food_nodes[n].draw();
+//  }
 
 //    picker.draw();
 
-    root.draw();
-    
-    if (hover_node != null)
-      hover_node.drawSelected(ctx);
-    else if (hover_edge != null)
-      hover_edge.drawSelectedEdge(ctx);
+  root.draw();
+  
+  if (hover_node != null)
+    hover_node.drawSelected(ctx);
+  else if (hover_edge != null)
+    hover_edge.drawSelectedEdge(ctx);
 
-    for (a in tree_ants) {
-      tree_ants[a].draw();
-    }
+  for (a in tree_ants) {
+    tree_ants[a].draw();
+  }
 
-    nest.draw();
+  nest.draw();
 
+  if (SHOW_OUTPUT) {
     for (o in observer_array) {
       $.plot(observer_array[o].flot, 
              [ { label: 'Outgoing', data: observer_array[o].getOutgoingSeries(50) } , 
@@ -439,6 +498,11 @@ function init_pheromones(amount, node, path)
 
 function init()
 {
+  RUNNING = false;
+  $('#button_start').html("Start");
+
+  Math.seedrandom(SEED);
+
   TIME = 0;
 
   picker = new Quad(0, 0, WIDTH, HEIGHT);
@@ -466,10 +530,18 @@ function init()
 
   eye_icon = new Image();
   eye_icon.src = 'img/eye.png';
+
+  render();
 }
 
 function getInputValues()
 {
+  SEED =  $('#in_seed').val();
+
+  NUM_OBSERVATIONS = Number($('#in_observations').val());
+  OBSERVATION_RATE = Number($('#in_obsrate').val());
+  OBSERVATION_TIME = Number($('#in_obslength').val());
+
   DEPTH = $('#in_treedepth').val();
   FULL_TREE_DEPTH = $('#in_fulldepth').val();
   CHILD_PROB = $('#in_branchprob').val();
@@ -525,6 +597,14 @@ function getInputValues()
 
 function setInputValues()
 {
+  $('#in_output').attr('checked', SHOW_OUTPUT);
+
+  $('#in_seed').val(SEED);
+
+  $('#in_observations').val(NUM_OBSERVATIONS);
+  $('#in_obsrate').val(OBSERVATION_RATE);
+  $('#in_obslength').val(OBSERVATION_TIME);
+
   $('#in_treedepth').val(DEPTH);
   $('#in_fulldepth').val(FULL_TREE_DEPTH);
   $('#in_branchprob').val(CHILD_PROB);
@@ -639,6 +719,19 @@ $(document).ready(function() {
     }
   });
   
+  $('#in_output').click(function() {
+    SHOW_OUTPUT = $(this).is(':checked');
+    if (SHOW_OUTPUT) {
+      for (o in observer_array) {
+        observer_array[o].div.appendTo('#output');
+      }
+    }
+    else {
+      for (o in observer_array) {
+        observer_array[o].div.detach();
+      }
+    }
+  });  
 
   setInputValues();
 
@@ -659,7 +752,6 @@ $(document).ready(function() {
       $('#documentation').css("top", pos.top);
       $('#documentation').stop(true,true).fadeOut(150);
     });
-
 
   init();
 
