@@ -4,15 +4,18 @@
   <title>Ant Simulation</title>
   <link href="ants.css" rel="stylesheet" type="text/css" />
   <script id="jquery"    src="jquery-1.8.2.min.js" type="text/javascript"></script>
-  <script id="flot"      src="jquery.flot.min.js" type="text/javascript"></script>
-  <script id="random"    src="random.js"   type="text/javascript"></script>
-  <script id="scr_obs"   src="observer.js" type="text/javascript"></script>  
-  <script id="scr_node"  src="node.js"     type="text/javascript"></script>
-  <script id="scr_quad"  src="quad.js"     type="text/javascript"></script>
-  <script id="scr_nest"  src="nest.js"     type="text/javascript"></script>
-  <script id="scr_ant"   src="ant.js"      type="text/javascript"></script>
-  <script id="scr_model" src="model.js"    type="text/javascript"></script>
-  <script id="scr_tool"  src="tooltips.js" type="text/javascript"></script>
+  <script id="flot"      src="jquery.flot.min.js"  type="text/javascript"></script>
+  <script id="blob"      src="Blob.js"      type="text/javascript"></script>
+  <script id="save"      src="FileSaver.js" type="text/javascript"></script>
+  <script id="random"    src="random.js"    type="text/javascript"></script>
+  <script id="stats"     src="stats.js"     type="text/javascript"></script>
+  <script id="scr_obs"   src="observer.js"  type="text/javascript"></script>  
+  <script id="scr_node"  src="node.js"      type="text/javascript"></script>
+  <script id="scr_quad"  src="quad.js"      type="text/javascript"></script>
+  <script id="scr_nest"  src="nest.js"      type="text/javascript"></script>
+  <script id="scr_ant"   src="ant.js"       type="text/javascript"></script>
+  <script id="scr_model" src="model.js"     type="text/javascript"></script>
+  <script id="scr_tool"  src="tooltips.js"  type="text/javascript"></script>
 </head>
 <body>
   <div id="main_container">
@@ -26,8 +29,12 @@
         <div id="div_constants">
           <ul>
             <li>
-              <span class="span-left hoverdoc">Seed Phrase:</span>
-              <span class="span-right"><input id="in_seed" type="text" /></span>
+              <span class="span-left hoverdoc">Tree Seed:</span>
+              <span class="span-right"><input id="in_treeseed" type="text" /></span>
+            </li>
+            <li>
+              <span class="span-left hoverdoc">Ant Seed:</span>
+              <span class="span-right"><input id="in_antseed" type="text" /></span>
             </li>
           </ul>
       </fieldset>
@@ -35,6 +42,10 @@
         <legend id="lgnd_reports">Reports</legend>
         <div id="div_reports">
           <ul>
+            <li>
+              <span class="span-left hoverdoc">Model Runs:</span>
+              <span class="span-right"><input id="in_numruns" type="number" min=0 step=1 /></span>
+            </li>            
             <li>
               <span class="span-left hoverdoc">Obesrvations:</span>
               <span class="span-right"><input id="in_observations" type="number" min=0 step=1 /></span>
@@ -194,6 +205,7 @@
     </div>
     <button class="button-full" id="button_apply">Apply Changes</button>
     <button class="button-full" id="button_revert">Revert to Set Values</button>
+    <div id="report"></div>
   </div>
 </body>
 </html>

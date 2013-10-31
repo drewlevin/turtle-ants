@@ -4,19 +4,21 @@ var HEIGHT = 0;
 var TIME = 0;
 
 // Constants
-var SEED = 'Ants!';
+var TREE_SEED = 'Tree!';
+var ANT_SEED = 'Ants!'
 
 // Output Control
 var SHOW_OUTPUT = true
 
 // Report Generation
+var NUM_RUNS = 1;
 var NUM_OBSERVATIONS = 6;
 var OBSERVATION_RATE = 600;
 var OBSERVATION_TIME = 60;
 
 // Environment
 var DEPTH = 10;
-var FULL_TREE_DEPTH =4;
+var FULL_TREE_DEPTH = 4;
 var CHILD_PROB = 0.5;
 var FOOD_PROB = 0.5;
 var MAX_FOOD = 1000;
@@ -77,7 +79,9 @@ var GENERATED_REPORT = false;
 var PLOT_OPTIONS = 
     {
       xaxis: {tickSize: 100}, 
-      yaxis: {min: 0, tickSize: 5}
+      yaxis: {min: 0},
+      selection: {mode: "x"},
+      legend: {position: "nw" }
     };
 
 
@@ -93,6 +97,8 @@ var static_ctx;
 var hover_node = null;
 var hover_edge = null;
 
+var total_runs = 0;
+var root_ant_seed = ANT_SEED;
 var food_nodes = [];
 var tree_ants = [];
 var lymph_ants = [];
@@ -102,7 +108,17 @@ var food_node_b;
 var food_node_a_path;
 var food_node_b_path;
 
+var nearest_food = null;
+var farthest_food = null;
+var nearest_empty = null;
+var farthest_empty = null;
+var nearest_food_dist = 99;
+var farthest_food_dist = 0;
+var nearest_empty_dist = 99;
+var farthest_empty_dist = 0;
+
 var observer_array = [];
+var observer_array_collection = [];
 var observer_id = 1;
 var eye_icon = null;
 
@@ -134,6 +150,10 @@ var eye_icon = null;
 
 function buildTree(node, depth)
 {
+  if (node.parent != null ) {
+    node.observer = new Observer(0, node);
+  }
+
   // Double branch
   if (depth > DEPTH - FULL_TREE_DEPTH ) {
     node.right = new Node(node, node.depth + 1, true);
@@ -163,10 +183,30 @@ function buildTree(node, depth)
   }
   // Leaf
   if (node.right == null && node.left == null) {
+    dist = DEPTH - depth + 1;
     node.weight = 10; 
     if (Math.random() < FOOD_PROB) {
       node.food = MAX_FOOD;
       food_nodes.push(node);
+
+      if (dist < nearest_food_dist) {
+        nearest_food = node;
+        nearest_food_dist = dist;
+      }
+      if (dist >= farthest_food_dist) {
+        farthest_food = node;
+        farthest_food_dist = dist;
+      }
+    }
+    else {
+      if (dist <= nearest_empty_dist) {
+        nearest_empty = node;
+        nearest_empty_dist = dist;
+      }
+      if (dist > farthest_empty_dist) {
+        farthest_empty = node;
+        farthest_empty_dist = dist;
+      }
     }
   }
 }
@@ -272,43 +312,111 @@ function positionTree(node)
   picker.addEdge(node);
 }
 
+function generateReportString() {
+  var output = "";  
+
+  var values, stats;
+  var mean, std;
+
+  for (var i=0; i<observer_array.length; i++) {
+    values = [];
+    output += "Observer " + observer_array[i].id + " Outgoing: ";
+    for (var j=0; j<NUM_OBSERVATIONS; j++) {
+      values.push(observer_array[i].getOutgoingCount(OBSERVATION_RATE*(j+1), 
+                                                     OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+      stats = Stats(values);
+      mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
+      std = Math.floor(stats.getStandardDeviation() * 100) / 100;
+      output += mean + " +/- " + std + ",  ";
+    }
+    output += '\n';
+
+    values = [];
+    output += "Observer " + observer_array[i].id + " Incoming: ";
+    for (var j=0; j<NUM_OBSERVATIONS; j++) {
+      values.push(observer_array[i].getIncomingCount(OBSERVATION_RATE*(j+1), 
+                                                     OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+      stats = Stats(values);
+      mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
+      std = Math.floor(stats.getStandardDeviation() * 100) / 100;
+      output += mean + " +/- " + std + ",  ";
+    }    
+    output += "\n";
+  }
+
+  return output;
+}
+
 function generateReports() 
 {
   if (observer_array.length > 0 && !GENERATED_REPORT) {
 
+    var blob = new Blob([generateReportString()], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "report.txt")
+
     GENERATED_REPORT = true;
 
-    var report_flot_array = [];
+    var div, flot_div, column_div, top, markings_array;
+    var column_offset, column_width, column_div_width = 1180;
+    var time_rate_ratio = OBSERVATION_TIME / OBSERVATION_RATE;
 
-    var report_div = $('<div id="report"></div>').css({'height': '0px'}).appendTo('#main_container');
-    report_div.animate({'height': (5+205*observer_array.length)+'px'}, 1000);
+    var report_div = $('#report');
+    report_div.css({'visibility': 'visible'});
+    report_div.animate({'height': (5+305*observer_array.length)+'px'}, 1000);
 
     for (o in observer_array) {
-      var top = 5+(205*o);
-
-      var div = $('<div></div>', {'class': 'report_container'}).css({'top': top+'px'});
+      top = 5+(275*o);
+      div = $('<div></div>', {'class': 'report_container'}).css({'top': top+'px'});
 
       $('<h4>Observer '+ observer_array[o].id +'</h4>').appendTo(div);
 
-      report_flot_array.push($('<div></div>', {'class': 'report_flot'}).appendTo(div));
+      flot_div = $('<div></div>', {'class': 'report_flot'}).appendTo(div);
+      column_div = $('<div></div>', {'class': 'report_columns'}).appendTo(div);
 
       div.appendTo(report_div);
 
-      $.plot(report_flot_array[o], 
+      column_offset = (column_div_width * time_rate_ratio) / (time_rate_ratio + NUM_OBSERVATIONS);
+      column_width  = column_offset / time_rate_ratio;
+
+      for (var i=0; i<NUM_OBSERVATIONS; i++) {
+        $('<div class="report_single_column">Outgoing: ' + 
+             observer_array[o].getOutgoingCount(OBSERVATION_RATE*(i+1), OBSERVATION_RATE*(i+1)+OBSERVATION_TIME) +
+          '<br/>Incoming : ' +
+             observer_array[o].getIncomingCount(OBSERVATION_RATE*(i+1), OBSERVATION_RATE*(i+1)+OBSERVATION_TIME) +
+          '</div>').css({'width': Math.floor(column_width-20)+'px',
+                         'left' : (Math.floor(column_offset)+Math.floor(column_width)*i)+'px'
+                        }).appendTo(column_div);
+      }
+
+      markings_array = [];
+      for (var i=0; i<NUM_OBSERVATIONS; i++) {
+        markings_array.push({ color: "#e8cfac", lineWidth: "1",
+                              xaxis: { from: OBSERVATION_RATE*(i+1), 
+                                       to: OBSERVATION_RATE*(i+1)+OBSERVATION_TIME-1 } });
+      }
+      var options = $.extend(true, {}, PLOT_OPTIONS);
+      options['grid'] = { markings: markings_array };
+      $.plot(flot_div, 
              [ { label: 'Outgoing', data: observer_array[o].getOutgoingSeries(TIME) } , 
                { label: 'Incoming', data: observer_array[o].getIncomingSeries(TIME) } , 
                { label: 'Outgoing Smoothed', data: observer_array[o].getOutgoingSmoothed(TIME) } , 
                { label: 'Incoming Smoothed', data: observer_array[o].getIncomingSmoothed(TIME) } ] , 
-             PLOT_OPTIONS);
-
+             options );
     }
   }
 }
 
-function createObserver(_edge) 
+function autoAddObservers() {
+  addObserver(nearest_food);
+  addObserver(farthest_food);
+  addObserver(nearest_empty);
+  addObserver(farthest_empty);
+}
+
+function addObserver(_edge) 
 {
-  if (_edge.observer == null) {
-    _edge.observer = new Observer(observer_id, _edge);
+  if (_edge.observer.id == 0) {
+    _edge.observer.id = observer_id;
     observer_id++;
 
     _edge.observer.createDiv(observer_array.length);
@@ -329,7 +437,7 @@ function removeObserver(_id)
   
   var removed_observer = observer_array.splice(index, 1);
   removed_observer[0].div.remove();
-  removed_observer[0].edge.observer = null;
+  removed_observer[0].edge.observer.id = 0;
 
   for (o in observer_array) {
     observer_array[o].div.animate({'top': (45 + 175*o) + 'px'}, 500);
@@ -353,8 +461,8 @@ function mouseMove(e)
 function mouseClick(e)
 {
   if (hover_edge != null) {
-    if (hover_edge.observer == null) {
-      createObserver(hover_edge);
+    if (hover_edge.observer.id == 0) {
+      addObserver(hover_edge);
     }
     else {
       removeObserver(hover_edge.observer.id);
@@ -373,11 +481,51 @@ function revert(e)
   setInputValues();
 }
 
+function reset_model_run() {  
+
+  tree_ants = [];
+
+  for (o in observer_array) {
+    observer_array[o].div.remove();
+  }
+
+  GENERATED_REPORT = false;
+
+  if (INITIAL_PATH) {
+    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_a.foodColor = '#C22';
+    food_node_b.foodColor = '#22C';
+
+    if (PHEROMONE) {
+      init_pheromones(2000, root, food_node_a.getPath());
+      init_pheromones(2000, root, food_node_b.getPath());
+    }
+  }
+
+  nest = new Nest(NEST_ANTS, SEARCHING);
+
+  root.initObservers();
+
+  TIME = 0;
+  update();
+}
+
 function reset(e)
 {
   food_nodes = [];
   tree_ants = [];
-  lymph_ants = [];
+
+  nearest_food = null;
+  farthest_food = null;
+  nearest_empty = null;
+  farthest_empty = null;
+  nearest_food_dist = 99;
+  farthest_food_dist = 0;
+  nearest_empty_dist = 99;
+  farthest_empty_dist = 0;
+
+  total_runs = 0;
 
   static_canvas = document.createElement('canvas');
   static_canvas.width = WIDTH;
@@ -387,8 +535,13 @@ function reset(e)
   for (o in observer_array) {
     observer_array[o].div.remove();
   }
+  observer_array_collection = [];
   observer_array = [];
   observer_id = 1;
+
+  var child_array = $('#report').contents().each(function(i,v) { $(this).remove(); });
+  $('#report').css({'visibility': 'hidden', 'height': '0px'});
+  GENERATED_REPORT = false;
 
   init();
 }
@@ -420,14 +573,22 @@ function update()
       }
     }
 
-    for (o in observer_array) {
-      observer_array[o].update();
-    }
-
-    if (NUM_OBSERVATIONS > 0 && TIME >= NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) {
-      RUNNING = false;
-      $('#button_start').html("Start");
-      generateReports();
+    if (NUM_OBSERVATIONS > 0 && 
+        TIME >= NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) 
+    {
+      observer_array_collection.push(observer_array);
+      total_runs++;
+      if (total_runs == NUM_RUNS) {
+        RUNNING = false;
+        $('#button_start').html("Start");
+        generateReports();
+      }
+      else {
+        ANT_SEED = root_ant_seed + '_' + total_runs;
+        $('#in_antseed').val(ANT_SEED);
+        
+        reset_model_run();
+      }
     }
     else {
       setTimeout(update, 16);
@@ -449,6 +610,7 @@ function render()
   ctx.font = 'bold 20px courier';
 //    ctx.textBaseline = 'middle';
   ctx.fillText('Time: ' + Math.floor(TIME / 1), 10, 20);
+  ctx.fillText('Run: ' + Number(Math.min(NUM_RUNS, total_runs+1)), 620, 20);
 
 //  for (n in food_nodes) {
 //    food_nodes[n].draw();
@@ -472,8 +634,8 @@ function render()
   if (SHOW_OUTPUT) {
     for (o in observer_array) {
       $.plot(observer_array[o].flot, 
-             [ { label: 'Outgoing', data: observer_array[o].getOutgoingSeries(50) } , 
-               { label: 'Incoming', data: observer_array[o].getIncomingSeries(50) } ] , 
+             [ { label: 'Outgoing', data: observer_array[o].getOutgoingTotal(50) } , 
+               { label: 'Incoming', data: observer_array[o].getIncomingTotal(50) } ] , 
              PLOT_OPTIONS);
     }
   }
@@ -501,7 +663,7 @@ function init()
   RUNNING = false;
   $('#button_start').html("Start");
 
-  Math.seedrandom(SEED);
+  Math.seedrandom(TREE_SEED);
 
   TIME = 0;
 
@@ -510,7 +672,12 @@ function init()
 
   buildTree(root, DEPTH);
 
+  autoAddObservers();
+  root.initObservers();
+
   positionTree(root);
+
+  Math.seedrandom(ANT_SEED);
 
   if (INITIAL_PATH) {
     food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
@@ -528,16 +695,15 @@ function init()
 
   root.drawTree(static_ctx);
 
-  eye_icon = new Image();
-  eye_icon.src = 'img/eye.png';
-
   render();
 }
 
 function getInputValues()
 {
-  SEED =  $('#in_seed').val();
+  TREE_SEED =  $('#in_treeseed').val();
+  ANT_SEED =  $('#in_antseed').val();
 
+  NUM_RUNS =  Number($('#in_numruns').val());
   NUM_OBSERVATIONS = Number($('#in_observations').val());
   OBSERVATION_RATE = Number($('#in_obsrate').val());
   OBSERVATION_TIME = Number($('#in_obslength').val());
@@ -599,8 +765,10 @@ function setInputValues()
 {
   $('#in_output').attr('checked', SHOW_OUTPUT);
 
-  $('#in_seed').val(SEED);
+  $('#in_treeseed').val(TREE_SEED);
+  $('#in_antseed').val(ANT_SEED);
 
+  $('#in_numruns').val(NUM_RUNS);
   $('#in_observations').val(NUM_OBSERVATIONS);
   $('#in_obsrate').val(OBSERVATION_RATE);
   $('#in_obslength').val(OBSERVATION_TIME);
@@ -668,6 +836,9 @@ $(document).ready(function() {
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
   
+  eye_icon = new Image();
+  eye_icon.src = 'img/eye.png';
+
   $('#canvas').mousemove(function(e) { mouseMove(e); });
   $('#canvas').click(function(e) { mouseClick(e); });
 //  $('#canvas').click(function(e) { mouseClick(e); });

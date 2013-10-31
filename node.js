@@ -137,7 +137,23 @@ function Node(_parent, _depth, _isRight)
         }
       }
     }
+
+    if (this.observer != null) {
+      this.observer.update();
+    }
   }
+
+  this.initObservers = function() {
+    if (this.observer != null) {
+      this.observer.init();
+    }
+    if (this.right != null) {
+      this.right.initObservers();
+    }
+    if (this.left != null) {
+      this.left.initObservers();
+    }
+  };
 
   this.drawTree = function(_ctx)
   {
@@ -251,37 +267,39 @@ function Node(_parent, _depth, _isRight)
 
     // Draw an observation station
     if (this.observer != null) {
-      ctx.lineWidth = BRANCH_WIDTH;
-      ctx.strokeStyle = "rgb(63, 63, 255)";
-      ctx.beginPath();
-      ctx.moveTo(this.observation_x1, this.observation_y1);
-      ctx.lineTo(this.observation_x2, this.observation_y2);
-      ctx.stroke();
+      if (this.observer.id != 0) {
+        ctx.lineWidth = BRANCH_WIDTH;
+        ctx.strokeStyle = "rgb(63, 63, 255)";
+        ctx.beginPath();
+        ctx.moveTo(this.observation_x1, this.observation_y1);
+        ctx.lineTo(this.observation_x2, this.observation_y2);
+        ctx.stroke();
 
-      // Draw eye icon and id
-      ctx.drawImage(eye_icon, this.observation_x1-8, this.observation_y1-8);
+        // Draw eye icon and id
+        ctx.drawImage(eye_icon, this.observation_x1-8, this.observation_y1-8);
 
-      ctx.fillStyle = '#000';
-      ctx.font = 'bold 12px ariel';
-      ctx.textBaseline = 'middle';
-      // place the id in the correct quadrant
-      var width_correction = Math.floor(Math.log(this.observer.id)/Math.LN10) * 4;
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 12px ariel';
+        ctx.textBaseline = 'middle';
+        // place the id in the correct quadrant
+        var width_correction = Math.floor(Math.log(this.observer.id)/Math.LN10) * 4;
 
-      if (this.observation_x1 > this.observation_x2) {
-        if (this.observation_y1 > this.observation_y2) {
-          ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1+8);
+        if (this.observation_x1 > this.observation_x2) {
+          if (this.observation_y1 > this.observation_y2) {
+            ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1+8);
+          }
+          else {
+            ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1-8);
+          }
         }
-        else {
-          ctx.fillText(this.observer.id, this.observation_x1+8-width_correction, this.observation_y1-8);
-        }
-      }
-      else
-      {
-        if (this.observation_y1 > this.observation_y2) {
-          ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1+8);
-        }
-        else {
-          ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1-8);
+        else
+        {
+          if (this.observation_y1 > this.observation_y2) {
+            ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1+8);
+          }
+          else {
+            ctx.fillText(this.observer.id, this.observation_x1-12-width_correction, this.observation_y1-8);
+          }
         }
       }
     }
