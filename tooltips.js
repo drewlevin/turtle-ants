@@ -34,18 +34,23 @@ function getDescription(element)
       desc = 'Sets the initial seed for the random number generator';
       init = 'Ants!';
       break;
+    case 'in_savereport':
+      title = 'Generate Report';
+      desc = 'Toggles the generation and saving of a text file report of the results.';
+      init = '60';
+      break;
     case 'in_observations':
       title = 'Observations';
       desc = 'Sets the total number of obsrevations taken.  The model will automatically stop after the last observation unless this value is set to 0.';
       init = '0';
       break;
     case 'in_obsrate':
-      title = 'Observation Rate';
-      desc = 'Sets the rate at which observations are taken (i.e. every N time steps).';
+      title = 'Observation Interval';
+      desc = 'Sets the interval at which observations are taken (i.e. every N time steps).';
       init = '600';
       break;
     case 'in_obslength':
-      title = 'Length of Observation';
+      title = 'Duration of Observation';
       desc = 'Controls over what period of time a single observation is taken';
       init = '60';
       break;

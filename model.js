@@ -15,6 +15,7 @@ var NUM_RUNS = 1;
 var NUM_OBSERVATIONS = 6;
 var OBSERVATION_RATE = 600;
 var OBSERVATION_TIME = 60;
+var SAVE_REPORT = true;
 
 // Environment
 var DEPTH = 10;
@@ -112,13 +113,13 @@ var nearest_food = null;
 var farthest_food = null;
 var nearest_empty = null;
 var farthest_empty = null;
-var nearest_food_dist = 99;
+var nearest_food_dist = 1e99;
 var farthest_food_dist = 0;
-var nearest_empty_dist = 99;
+var nearest_empty_dist = 1e99;
 var farthest_empty_dist = 0;
 
 var observer_array = [];
-var observer_array_collection = [];
+var observer_collection = [];
 var observer_id = 1;
 var eye_icon = null;
 
@@ -312,35 +313,66 @@ function positionTree(node)
   picker.addEdge(node);
 }
 
+function generateReportSingleTableString(_run) {
+  var output = "Run " + (_run+1) + "\n";
+  for (var i=0; i<observer_array.length; i++) {
+    output += "Observer " + observer_array[i].id + " Outgoing: ";
+    for (var j=0; j<NUM_OBSERVATIONS; j++) {
+      output += observer_collection[_run][i].outgoing[j];
+      output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
+    }
+    output += '\n';
+
+    output += "Observer " + observer_array[i].id + " Incoming: ";
+    for (var j=0; j<NUM_OBSERVATIONS; j++) {
+      output += observer_collection[_run][i].incoming[j];
+      output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
+    }    
+    output += "\n";
+  }
+  output += "\n"
+  return output;
+}
+
 function generateReportString() {
   var output = "";  
 
   var values, stats;
   var mean, std;
 
+  for (var i=0; i<NUM_RUNS; i++) {
+    output += generateReportSingleTableString(i);
+  }
+
   for (var i=0; i<observer_array.length; i++) {
-    values = [];
     output += "Observer " + observer_array[i].id + " Outgoing: ";
+
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
-      values.push(observer_array[i].getOutgoingCount(OBSERVATION_RATE*(j+1), 
-                                                     OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+      values = [];
+      for (var run=0; run<NUM_RUNS; run++) {    
+        values.push(observer_collection[run][i].outgoing[j]);
+      }
       stats = Stats(values);
       mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
-      std = Math.floor(stats.getStandardDeviation() * 100) / 100;
-      output += mean + " +/- " + std + ",  ";
+      std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
+      output += mean + " +/- " + std;
+      output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
     output += '\n';
 
-    values = [];
-    output += "Observer " + observer_array[i].id + " Incoming: ";
+    output += "Observer " + observer_array[i].id + " Incoming: ";  
+
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
-      values.push(observer_array[i].getIncomingCount(OBSERVATION_RATE*(j+1), 
-                                                     OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+      values = [];
+      for (var run=0; run<NUM_RUNS; run++) {    
+        values.push(observer_collection[run][i].incoming[j]);
+      }    
       stats = Stats(values);
       mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
-      std = Math.floor(stats.getStandardDeviation() * 100) / 100;
-      output += mean + " +/- " + std + ",  ";
-    }    
+      std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS)) * 100) / 100;
+      output += mean + " +/- " + std;
+      output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
+    }
     output += "\n";
   }
 
@@ -573,11 +605,32 @@ function update()
       }
     }
 
-    if (NUM_OBSERVATIONS > 0 && 
+    if (SAVE_REPORT && NUM_OBSERVATIONS > 0 && 
         TIME >= NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) 
     {
-      observer_array_collection.push(observer_array);
+      var collection = [];
+      for (var i=0; i<observer_array.length; i++) {
+        var observer = {};
+        var incoming = [];
+        var outgoing = [];
+
+        observer.id = observer_array.id;
+
+        for (var j=0; j<NUM_OBSERVATIONS; j++) {
+          incoming.push(observer_array[i].getIncomingCount(OBSERVATION_RATE*(j+1), 
+                                                           OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+          outgoing.push(observer_array[i].getOutgoingCount(OBSERVATION_RATE*(j+1), 
+                                                           OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+        }
+        observer.incoming = incoming;
+        observer.outgoing = outgoing;
+
+        collection.push(observer);
+      }       
+      observer_collection.push(collection);
+
       total_runs++;
+
       if (total_runs == NUM_RUNS) {
         RUNNING = false;
         $('#button_start').html("Start");
@@ -707,6 +760,7 @@ function getInputValues()
   NUM_OBSERVATIONS = Number($('#in_observations').val());
   OBSERVATION_RATE = Number($('#in_obsrate').val());
   OBSERVATION_TIME = Number($('#in_obslength').val());
+  SAVE_REPORT = $('#in_savereport').is(':checked');
 
   DEPTH = $('#in_treedepth').val();
   FULL_TREE_DEPTH = $('#in_fulldepth').val();
@@ -772,6 +826,7 @@ function setInputValues()
   $('#in_observations').val(NUM_OBSERVATIONS);
   $('#in_obsrate').val(OBSERVATION_RATE);
   $('#in_obslength').val(OBSERVATION_TIME);
+  $('#in_savereport').attr('checked', SAVE_REPORT);
 
   $('#in_treedepth').val(DEPTH);
   $('#in_fulldepth').val(FULL_TREE_DEPTH);
