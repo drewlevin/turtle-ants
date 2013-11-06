@@ -5,17 +5,17 @@ var TIME = 0;
 
 // Constants
 var TREE_SEED = 'Tree!';
-var ANT_SEED = 'Ants!'
+var ANT_SEED = 'Ants!';
 
 // Output Control
-var SHOW_OUTPUT = true
+var SHOW_OUTPUT = true;
 
 // Report Generation
+var SAVE_REPORT = true;
 var NUM_RUNS = 1;
 var NUM_OBSERVATIONS = 6;
 var OBSERVATION_RATE = 600;
 var OBSERVATION_TIME = 60;
-var SAVE_REPORT = true;
 
 // Environment
 var DEPTH = 10;
@@ -385,6 +385,7 @@ function generateReports()
 
     var blob = new Blob([generateReportString()], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "report.txt")
+console.log("saveAs");
 
     GENERATED_REPORT = true;
 
@@ -516,10 +517,22 @@ function revert(e)
 function reset_model_run() {  
 
   tree_ants = [];
+  food_nodes = [];
 
   for (o in observer_array) {
     observer_array[o].div.remove();
   }
+  observer_array = [];
+  observer_id = 1;
+
+  nearest_food = null;
+  farthest_food = null;
+  nearest_empty = null;
+  farthest_empty = null;
+  nearest_food_dist = 99;
+  farthest_food_dist = 0;
+  nearest_empty_dist = 99;
+  farthest_empty_dist = 0;
 
   GENERATED_REPORT = false;
 
@@ -579,7 +592,7 @@ function reset(e)
   for (o in observer_array) {
     observer_array[o].div.remove();
   }
-  observer_array_collection = [];
+  observer_collection = [];
   observer_array = [];
   observer_id = 1;
 
@@ -766,11 +779,11 @@ function getInputValues()
   TREE_SEED =  $('#in_treeseed').val();
   ANT_SEED =  $('#in_antseed').val();
 
+  SAVE_REPORT = $('#in_savereport').is(':checked');
   NUM_RUNS =  Number($('#in_numruns').val());
   NUM_OBSERVATIONS = Number($('#in_observations').val());
   OBSERVATION_RATE = Number($('#in_obsrate').val());
   OBSERVATION_TIME = Number($('#in_obslength').val());
-  SAVE_REPORT = $('#in_savereport').is(':checked');
 
   DEPTH = $('#in_treedepth').val();
   FULL_TREE_DEPTH = $('#in_fulldepth').val();
@@ -832,11 +845,11 @@ function setInputValues()
   $('#in_treeseed').val(TREE_SEED);
   $('#in_antseed').val(ANT_SEED);
 
+  $('#in_savereport').attr('checked', SAVE_REPORT);
   $('#in_numruns').val(NUM_RUNS);
   $('#in_observations').val(NUM_OBSERVATIONS);
   $('#in_obsrate').val(OBSERVATION_RATE);
   $('#in_obslength').val(OBSERVATION_TIME);
-  $('#in_savereport').attr('checked', SAVE_REPORT);
 
   $('#in_treedepth').val(DEPTH);
   $('#in_fulldepth').val(FULL_TREE_DEPTH);
