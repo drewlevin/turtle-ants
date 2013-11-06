@@ -123,7 +123,7 @@ var observer_collection = [];
 var observer_id = 1;
 var eye_icon = null;
 
-val eol = (function() {
+var eol = (function() {
   var plat = navigator.platform.toLowerCase();
   if (plat.indexOf('win') != -1) return "\r\n";
   else if (plat.indexOf('mac') != -1) return "\r";
