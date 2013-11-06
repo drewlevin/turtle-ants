@@ -123,6 +123,13 @@ var observer_collection = [];
 var observer_id = 1;
 var eye_icon = null;
 
+val eol = (function() {
+  var plat = navigator.platform.toLowerCase();
+  if (plat.indexOf('win') != -1) return "\r\n";
+  else if (plat.indexOf('mac') != -1) return "\r";
+  else return "\n";
+}()); 
+
 // Request Animation Frame Shim
 (function() {
   var lastTime = 0;
@@ -321,16 +328,16 @@ function generateReportSingleTableString(_run) {
       output += observer_collection[_run][i].outgoing[j];
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
-    output += '\n';
+    output += eol;
 
     output += "Observer " + observer_array[i].id + " Incoming: ";
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
       output += observer_collection[_run][i].incoming[j];
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }    
-    output += "\n";
+    output += eol;
   }
-  output += "\n"
+  output += eol;
   return output;
 }
 
@@ -358,7 +365,7 @@ function generateReportString() {
       output += mean + " +/- " + std;
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
-    output += '\n';
+    output += eol;
 
     output += "Observer " + observer_array[i].id + " Incoming: ";  
 
@@ -373,7 +380,7 @@ function generateReportString() {
       output += mean + " +/- " + std;
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
-    output += "\n";
+    output += eol;
   }
 
   return output;
