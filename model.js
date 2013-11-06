@@ -523,6 +523,18 @@ function reset_model_run() {
 
   GENERATED_REPORT = false;
 
+  Math.seedrandom(TREE_SEED);
+
+  picker = new Quad(0, 0, WIDTH, HEIGHT);
+  root = new Node(null, 0, true);
+
+  buildTree(root, DEPTH);
+
+  autoAddObservers();
+  root.initObservers();
+
+  positionTree(root);
+
   if (INITIAL_PATH) {
     food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
     food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
@@ -661,15 +673,13 @@ function render()
 
   ctx.fillStyle = '#222';
   ctx.font = 'bold 20px courier';
-//    ctx.textBaseline = 'middle';
   ctx.fillText('Time: ' + Math.floor(TIME / 1), 10, 20);
   ctx.fillText('Run: ' + Number(Math.min(NUM_RUNS, total_runs+1)), 620, 20);
 
 //  for (n in food_nodes) {
 //    food_nodes[n].draw();
 //  }
-
-//    picker.draw();
+//  picker.draw();
 
   root.draw();
   
