@@ -107,7 +107,23 @@ Ant.prototype.update = function()
 
       // If the ant is at a branch point (choose branch)
       else {
-        this.branch();
+        if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {
+          if (!this.watching) {
+            this.watching = true;
+            this.watching_time = 0; 
+            this.origin.addWatcher(this);
+          }
+          else if (this.watching_time < WAIT_TIME) {
+            this.watching_time++;
+          }
+          else {
+            this.branch();
+          }
+        }
+        else {
+          this.dist = 0;
+          this.branch();
+        }
       }
     } 
     // If moving home
@@ -117,7 +133,7 @@ Ant.prototype.update = function()
       // If Path Interaction, send a singal to other ants
       if (PATH_INTERACTION) {
         this.dist = 0;
-        this.dest.signalReturn(this.origin.isRight);
+        this.dest.signalReturn(this.origin.isRight, this.found_food);
       }
       // If at a regular branch
       if (this.dest.parent != null) {
@@ -167,6 +183,7 @@ Ant.prototype.update = function()
 Ant.prototype.branch = function()
 {
   this.dest.ants -= 1;
+  this.origin = this.dest;
 
   // If the ant has a destination in mind
   if (!this.first && this.found_food && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
@@ -206,36 +223,24 @@ Ant.prototype.branch = function()
     }
     // If ants can be recruited on the path
     else if (PATH_INTERACTION) {
-      if (!this.watching) {
-        this.watching = true;
-        this.watching_time = 0; 
-        this.origin.addWatcher(this);
-      }
-      else {
-        if (this.watching_time > WAIT_TIME) {
-          this.watching = false;
-          this.origin.removeWatcher(this.id);
-          if (WEIGHT_LINEAR) {
+      this.watching = false;
+      this.origin.removeWatcher(this.id);
+      if (WEIGHT_LINEAR) {
 	      if (this.right_count + this.left_count == 0) {
-		  d = Math.random() < 0.5;
+	    	  d = Math.random() < 0.5;
 	      }
 	      else {
-		  d = Math.random() < this.right_count / (this.right_count + this.left_count);
+	    	  d = Math.random() < this.right_count / (this.right_count + this.left_count);
 	      }
-          }
-          else { // WEIGHT_COUNT
-            d = this.right_count > this.left_count ? 
-                  true : 
-	          (this.left_count > this.right_count ? 
-		     false :
-                     Math.random() < 0.5);
-          }
-	  this.dist = 0;
-        }
-        else {
-          this.watching_time++;
-        }
-      } 
+      }
+      else { // WEIGHT_COUNT
+        d = this.right_count > this.left_count ? 
+              true : 
+	            (this.left_count > this.right_count ? 
+		             false :
+                 Math.random() < 0.5);
+      }
+  	  this.dist = 0;
     }
     // If ants can smell food 
     else if (CAN_SMELL) {
@@ -260,7 +265,6 @@ Ant.prototype.branch = function()
     this.path.push(d);              
   }
 
-  this.origin = this.dest;
   this.dest.ants += 1;
 }
 

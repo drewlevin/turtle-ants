@@ -156,14 +156,16 @@ function Node(_parent, _depth, _isRight)
     }
   };
 
-  this.signalReturn = function(_dir) 
+  this.signalReturn = function(_dir, _food) 
   {
     for (var a=0; a<this.waiting_array.length; a++) {
-      if (_dir) {
-        this.waiting_array[a].right_count++;
-      }
-      else {
-        this.waiting_array[a].left_count++;
+      if (_food) {
+        if (_dir) {
+          this.waiting_array[a].right_count++;
+        }
+        else {
+          this.waiting_array[a].left_count++;
+        }
       }
     }
   }
