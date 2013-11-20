@@ -49,9 +49,9 @@ var NEST_TIME = 100000;
 var GIVE_PATH = false;
 
 // Path Interaction
-var STAY_PROB = 0.05;
-var INTERACT_PROB = 0.75;
-var AVERAGE_TIME = 500;
+var WAIT_TIME = 10;
+var WEIGHT_LINEAR = true;
+var WEIGHT_COUNT = false;
 
 // Pheromone Interaction
 var PHEROMONE_DECAY = 0.001;
@@ -321,7 +321,7 @@ function positionTree(node)
 }
 
 function generateReportSingleTableString(_run) {
-  var output = "Run " + (_run+1) + "\n";
+  var output = "Run " + (_run+1) + eol;
   for (var i=0; i<observer_array.length; i++) {
     output += "Observer " + observer_array[i].id + " Outgoing: ";
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
@@ -571,6 +571,8 @@ function reset_model_run() {
 
   root.initObservers();
 
+  Math.seedrandom(ANT_SEED);
+
   TIME = 0;
   update();
 }
@@ -646,7 +648,7 @@ function update()
         var incoming = [];
         var outgoing = [];
 
-        observer.id = observer_array.id;
+        observer.id = observer_array[i].id;
 
         for (var j=0; j<NUM_OBSERVATIONS; j++) {
           incoming.push(observer_array[i].getIncomingCount(OBSERVATION_RATE*(j+1), 
@@ -760,8 +762,6 @@ function init()
 
   positionTree(root);
 
-  Math.seedrandom(ANT_SEED);
-
   if (INITIAL_PATH) {
     food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
     food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
@@ -777,6 +777,8 @@ function init()
   nest = new Nest(NEST_ANTS, SEARCHING);
 
   root.drawTree(static_ctx);
+
+  Math.seedrandom(ANT_SEED);
 
   render();
 }
@@ -819,9 +821,9 @@ function getInputValues()
   NEST_TIME = $('#in_nesttime').val();
   GIVE_PATH = $('#in_givepath').is(':checked');
 
-  STAY_PROB = $('#in_stayprob').val();
-  INTERACT_PROB = $('#in_interactprob').val();
-  AVERAGE_TIME = $('#in_averagetime').val();
+  WAIT_TIME = $('#in_waittime').val();
+  WEIGHT_LINEAR = $('#in_decisionweighting').val() == "Linear";
+  WEIGHT_COUNT = $('#in_decisionweighting').val() == "Count";
 
   PHEROMONE_DECAY = $('#in_decayrate').val();
   SENSE_LINEAR = $('#in_senseprofile').val() == "Linear";
@@ -881,9 +883,8 @@ function setInputValues()
   $('#in_nesttime').val(NEST_TIME);
   $('#in_givepath').attr('checked', GIVE_PATH);
 
-  $('#in_stayprob').val(STAY_PROB);
-  $('#in_interactprob').val(INTERACT_PROB);
-  $('#in_averagetime').val(AVERAGE_TIME);
+  $('#in_waittime').val(WAIT_TIME);
+  $('#in_decisionweighting').val(WEIGHT_LINEAR ? "Linear" : "Count");
 
   $('#in_decayrate').val(PHEROMONE_DECAY);
   $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : (SENSE_LOG ? "Log" : "Const"));

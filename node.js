@@ -10,7 +10,8 @@ function Node(_parent, _depth, _isRight)
   this.isRight = _isRight;
   this.right = null;
   this.left = null;
-  this.has_path_ant = false;
+
+  this.waiting_array = [];
 
   this.observer = null;
 
@@ -154,6 +155,35 @@ function Node(_parent, _depth, _isRight)
       this.left.initObservers();
     }
   };
+
+  this.signalReturn = function(_dir) 
+  {
+    for (var a=0; a<this.waiting_array.length; a++) {
+      if (_dir) {
+        this.waiting_array[a].right_count++;
+      }
+      else {
+        this.waiting_array[a].left_count++;
+      }
+    }
+  }
+
+  this.addWatcher = function(_ant)
+  {
+    this.waiting_array.push(_ant);
+  }
+
+  this.removeWatcher = function(_id)
+  {
+    var temp = -1;
+    for (var i=0; i<this.waiting_array.length; i++) {
+	if (this.waiting_array[i].id == _id) {
+	    temp = i;
+	    break;
+	}
+    }  
+    this.waiting_array.splice(temp, 1);
+  }
 
   this.drawTree = function(_ctx)
   {

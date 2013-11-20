@@ -4,9 +4,10 @@
 // Implementation of the Ant class.  Contains state information, an update function,
 // and a draw function.
 
-function Ant(_dest) {
+function Ant(_id, _dest) {
 
   // Public Variables
+  this.id = _id;
   this.path = (_dest == null) ? [] : _dest.getPath().slice(0); // slice for deep copy
   this.first = (_dest == null);
   this.origin = root;
@@ -14,11 +15,13 @@ function Ant(_dest) {
   this.dist = 0;
   this.returning = false;
   this.found_food = false;
-  this.directing = false;
+  this.watching = false;
+  this.watching_time = 0;
+  this.left_count = 0; this.right_count = 0;
   this.x = 0; this.y = 0;
   this.color = (_dest != null) ? ((_dest.food > 0) ? _dest.foodColor : '#333') : '#333';
 
-  // Constructor
+  // Make initial branching decision
   this.branch();
 }
 
@@ -28,18 +31,8 @@ function Ant(_dest) {
  */
 Ant.prototype.update = function() 
 {
-  // Check to see if the ant will stop directing
-  if (this.directing) {
-    if (Math.random() < (1.0 / AVERAGE_TIME)) {
-      this.directing = false;
-      this.origin.has_path_ant = false;
-    } else {
-      this.dist = ((((this.dist*100 + 1) - 80) % 5) + 80) / 100.0;
-    }
-  }
-
   // Update the ant's position
-  if (!this.directing) {
+  if (!this.watching) {
     this.dist += ANT_SPEED;
   }
 
@@ -79,7 +72,9 @@ Ant.prototype.update = function()
   // At a node - choose new destination
   if (this.dist >= 1) 
   {
-    this.dist = 0;
+    if (!PATH_INTERACTION) {
+      this.dist = 0;
+    }
 
     // If moving outward
     if (!this.returning) 
@@ -119,16 +114,10 @@ Ant.prototype.update = function()
     else {
       this.origin.ants -= 1;
       
-      // If Path Interaction, check to see if the ant stays
+      // If Path Interaction, send a singal to other ants
       if (PATH_INTERACTION) {
-        if (this.found_food && !this.origin.has_path_ant && !this.directing && 
-            this.dest.right != null && this.dest.left != null &&
-            Math.random() < STAY_PROB) {
-          this.directing = true;
-          this.origin.has_path_ant = true;
-          this.dist = 0.8;
-          return false;
-        }
+        this.dist = 0;
+        this.dest.signalReturn(this.origin.isRight);
       }
       // If at a regular branch
       if (this.dest.parent != null) {
@@ -178,7 +167,6 @@ Ant.prototype.update = function()
 Ant.prototype.branch = function()
 {
   this.dest.ants -= 1;
-  this.origin = this.dest;
 
   // If the ant has a destination in mind
   if (!this.first && this.found_food && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
@@ -218,20 +206,31 @@ Ant.prototype.branch = function()
     }
     // If ants can be recruited on the path
     else if (PATH_INTERACTION) {
-      // If there is a recruiter to the right and NOT the left
-      if (this.dest.right.has_path_ant && !this.dest.left.has_path_ant &&
-          Math.random() < INTERACT_PROB) {
-        d = true;
+      if !(this.watching) {
+        this.watching = true;
+        this.watching_time = 0; 
+        this.origin.addWatcher(this);
       }
-      // If there is a recruiter to the left and NOT the right
-      else if (!this.dest.right.has_path_ant && this.dest.left.has_path_ant &&
-               Math.random() < INTERACT_PROB) {
-        d = false;
-      }
-      // Otherwise it's 50/50
       else {
-        d = Math.random() < 0.5;
-      }
+        if (this.watching_time > WAIT_TIME) {
+          this.watching = false;
+          this.origin.removeWatcher(this.id);
+          if (WEIGHT_LINEAR) {
+            d = Math.random() < this.right_count / (this.right_count + this.left_count);
+          }
+          else { // WEIGHT_COUNT
+            d = this.right_count > this.left_count ? 
+                  true : 
+	          (this.left_count > this.right_count ? 
+		     false :
+                     Math.random() < 0.5);
+          }
+	  this.dist = 0;
+        }
+        else {
+          this.watching_time++;
+        }
+      } 
     }
     // If ants can smell food 
     else if (CAN_SMELL) {
@@ -256,6 +255,7 @@ Ant.prototype.branch = function()
     this.path.push(d);              
   }
 
+  this.origin = this.dest;
   this.dest.ants += 1;
 }
 
@@ -264,21 +264,11 @@ Ant.prototype.branch = function()
  */
 Ant.prototype.draw = function()
 {
-  if (!this.directing) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
-    ctx.closePath();
-    ctx.fill();
-  }
-  // If the ant is recruiting other ants on the path
-  else {
-    ctx.fillStyle = '#A39';
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, ANT_RADIUS * 2, 0, Math.PI*2, true); 
-    ctx.closePath();
-    ctx.fill();    
-  }
+  ctx.fillStyle = this.color;
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
+  ctx.closePath();
+  ctx.fill();
 }
 
 /* sense
@@ -288,11 +278,13 @@ function sense(p)
 {
   // Linear pheromone profile
   if (SENSE_LINEAR) {
-    return ((-1/(1+Math.pow(2,-.001*(p-25000))))+1)*p+1;
+//    return ((-1/(1+Math.pow(2,-.001*(p-25000))))+1)*p+1;
+    return p+1;
   }
   // Logarithmic pheromone profile
   else if (SENSE_LOG) {
-    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-14.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
+//    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-14.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
+    return Math.log(p+1)/Math.log(2)+1; 
   }
   // Only checks to see which side is larger
   else if (SENSE_CONST) {

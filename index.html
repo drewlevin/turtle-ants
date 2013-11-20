@@ -172,16 +172,17 @@
         <div id="div_pathinteraction">
           <ul>
             <li>
-              <span class="span-left hoverdoc">Stay Prob:</span>
-              <span class="span-right"><input id="in_stayprob" type="number" min=0 max=1 step=.01 /></span>
+              <span class="span-left hoverdoc">Wait Time:</span>
+              <span class="span-right"><input id="in_waittime" type="number" min=0 max=1 step=.01 /></span>
             </li>
             <li>
-              <span class="span-left hoverdoc">Interact Prob:</span>
-              <span class="span-right"><input id="in_interactprob" type="number" min=0 max=1 step=.01 /></span>
-            </li>
-            <li>
-              <span class="span-left hoverdoc">Average Time:</span>
-              <span class="span-right"><input id="in_averagetime" type="number" min=1 step=1 /></span>
+              <span class="span-left hoverdoc">Descision Weigting:</span> 
+              <span class="span-right">
+                <select id="in_decisionweighting">
+                  <option>Linear</option>
+                  <option>Count</option>
+                </select>
+              </span>
             </li>
           <ul>
         </div>

@@ -1,5 +1,7 @@
 function Nest(_num_ants, _num_scouts)
 {
+  var ant_index = 1;
+
   var num_ants = _num_ants;
   var num_scouts = _num_scouts;  
 
@@ -15,12 +17,15 @@ function Nest(_num_ants, _num_scouts)
     while (num_scouts > 0 || (!NEST_INTERACTION && num_ants > 0)) {
       if (INITIAL_PATH) {
         if (Math.random() < .5) {
-          this.queue(new Ant(food_node_a));
+          this.queue(new Ant(ant_index, food_node_a));
+          ant_index++;
         } else {
-          this.queue(new Ant(food_node_b));
+          this.queue(new Ant(ant_index, food_node_b));
+          ant_index++;
         }
       } else {
-        this.queue(new Ant());
+        this.queue(new Ant(ant_index, null));
+        ant_index++;
       }
       num_scouts--;
     }
@@ -32,7 +37,8 @@ function Nest(_num_ants, _num_scouts)
       var extra = expected - definite;
       var leaving = definite + (Math.random() < extra ? 1 : 0);
       for (var i=0; i < leaving && num_ants > 0; i++) {
-        this.queue(new Ant());
+        this.queue(new Ant(ant_index, null));
+        ant_index++;
       }
     }
 
@@ -54,12 +60,14 @@ function Nest(_num_ants, _num_scouts)
     }
     if (GIVE_PATH) {
       for (var i=num_recruited; i>0; i--) {
-        this.queue(new Ant(_ant.dest));
+        this.queue(new Ant(ant_index, _ant.dest));
+        ant_index++;
       }
     }
     else {
       for (var i=num_recruited; i>0; i--) {
-        this.queue(new Ant());
+        this.queue(new Ant(ant_index, null));
+        ant_index++;
       }
     }
   }
