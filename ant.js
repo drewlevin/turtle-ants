@@ -240,6 +240,8 @@ Ant.prototype.branch = function()
 		             false :
                  Math.random() < 0.5);
       }
+      this.right_count = 0;
+      this.left_count = 0;
   	  this.dist = 0;
     }
     // If ants can smell food 
