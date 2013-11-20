@@ -216,7 +216,12 @@ Ant.prototype.branch = function()
           this.watching = false;
           this.origin.removeWatcher(this.id);
           if (WEIGHT_LINEAR) {
-            d = Math.random() < this.right_count / (this.right_count + this.left_count);
+	      if (this.right_count + this.left_count == 0) {
+		  d = Math.random() < 0.5;
+	      }
+	      else {
+		  d = Math.random() < this.right_count / (this.right_count + this.left_count);
+	      }
           }
           else { // WEIGHT_COUNT
             d = this.right_count > this.left_count ? 
