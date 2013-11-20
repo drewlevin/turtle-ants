@@ -206,7 +206,7 @@ Ant.prototype.branch = function()
     }
     // If ants can be recruited on the path
     else if (PATH_INTERACTION) {
-      if !(this.watching) {
+      if (!this.watching) {
         this.watching = true;
         this.watching_time = 0; 
         this.origin.addWatcher(this);
