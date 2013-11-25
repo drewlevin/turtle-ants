@@ -8,7 +8,7 @@ var TREE_SEED = 'Tree!';
 var ANT_SEED = 'Ants!';
 
 // Output Control
-var SHOW_OUTPUT = true;
+var SHOW_OUTPUT = false;
 
 // Report Generation
 var SAVE_REPORT = true;
@@ -456,6 +456,9 @@ function bfsAddObservers(_node) {
   var temp;
   var bfs_queue = [_node];
 
+  addObserver(nearest_empty);
+  addObserver(farthest_empty);
+
   while (bfs_queue.length > 0) {
     temp = bfs_queue.shift();
     if (temp.left == null && temp.right == null) {
@@ -571,7 +574,8 @@ function reset_model_run() {
 
   buildTree(root, DEPTH);
 
-  autoAddObservers();
+//  autoAddObservers();
+  bfsAddObservers(root);
   root.initObservers();
 
   positionTree(root);
