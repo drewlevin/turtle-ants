@@ -452,6 +452,28 @@ function autoAddObservers() {
   addObserver(farthest_empty);
 }
 
+function bfsAddObservers(_node) {
+  var temp;
+  var bfs_queue = [_node];
+
+  while (bfs_queue.length > 0) {
+    temp = bfs_queue.shift();
+    if (temp.left == null && temp.right == null) {
+      if (temp.food > 0) {
+        addObserver(temp);
+      }
+    }
+    else {
+      if (temp.left != null) {
+        bfs_queue.push(temp.left);
+      }
+      if (temp.right != null) {
+        bfs_queue.push(temp.right);
+      }
+    }    
+  }
+}
+
 function addObserver(_edge) 
 {
   if (_edge.observer.id == 0) {
@@ -756,7 +778,8 @@ function init()
 
   buildTree(root, DEPTH);
 
-  autoAddObservers();
+//  autoAddObservers();
+  bfsAddObservers(root);
   root.initObservers();
 
   positionTree(root);
