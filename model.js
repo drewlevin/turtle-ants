@@ -392,7 +392,6 @@ function generateReports()
 
     var blob = new Blob([generateReportString()], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "report.txt")
-console.log("saveAs");
 
     GENERATED_REPORT = true;
 

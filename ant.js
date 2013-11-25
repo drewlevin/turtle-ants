@@ -72,10 +72,6 @@ Ant.prototype.update = function()
   // At a node - choose new destination
   if (this.dist >= 1) 
   {
-    if (!PATH_INTERACTION) {
-      this.dist = 0;
-    }
-
     // If moving outward
     if (!this.returning) 
     {
@@ -129,9 +125,9 @@ Ant.prototype.update = function()
     // If moving home
     else {
       this.origin.ants -= 1;
-      
+      this.dist = 0;
       // If Path Interaction, send a singal to other ants
-      if (PATH_INTERACTION) {
+      if (PATH_INTERACTION && this.dest.depth == 0) { // ONLY FOR ROOT
         this.dist = 0;
         this.dest.signalReturn(this.origin.isRight, this.found_food);
       }
@@ -182,6 +178,8 @@ Ant.prototype.update = function()
  */
 Ant.prototype.branch = function()
 {
+  var old_origin = this.origin;
+
   this.dest.ants -= 1;
   this.origin = this.dest;
 
@@ -222,9 +220,9 @@ Ant.prototype.branch = function()
       }
     }
     // If ants can be recruited on the path
-    else if (PATH_INTERACTION) {
+    else if (PATH_INTERACTION) { // && old_origin.depth == 0) {  // ROOT ONLY
       this.watching = false;
-      this.origin.removeWatcher(this.id);
+      old_origin.removeWatcher(this.id);
       if (WEIGHT_LINEAR) {
 	      if (this.right_count + this.left_count == 0) {
 	    	  d = Math.random() < 0.5;
