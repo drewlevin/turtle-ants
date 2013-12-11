@@ -86,6 +86,15 @@ function Node(_parent, _depth, _isRight)
     }
   }
 
+  this.getChild = function(_path) {
+    if (_path.length == 0) {
+      return this;
+    }
+    else {
+      return _path.shift() ? this.right.getChild(_path) : this.left.getChild(_path);
+    }
+  }
+
   this.update = function()
   {
     if (this.food > 0) {

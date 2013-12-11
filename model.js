@@ -11,7 +11,7 @@ var ANT_SEED = 'Ants!';
 var SHOW_OUTPUT = false;
 
 // Report Generation
-var SAVE_REPORT = true;
+var SAVE_REPORT = false;
 var NUM_RUNS = 1;
 var NUM_OBSERVATIONS = 6;
 var OBSERVATION_RATE = 600;
@@ -104,6 +104,7 @@ var food_nodes = [];
 var tree_ants = [];
 var lymph_ants = [];
 var nest = null;
+var food_accumulator = 0;
 var food_node_a;
 var food_node_b;
 var food_node_a_path;
@@ -191,9 +192,13 @@ function buildTree(node, depth)
   }
   // Leaf
   if (node.right == null && node.left == null) {
+    food_accumulator += Number(FOOD_PROB);
     dist = DEPTH - depth + 1;
     node.weight = 10; 
-    if (Math.random() < FOOD_PROB) {
+//    if (Math.random() < FOOD_PROB) {
+    if (food_accumulator >= 1) {
+      food_accumulator -= 1.0;
+
       node.food = MAX_FOOD;
       food_nodes.push(node);
 
@@ -347,26 +352,30 @@ function generateReportString() {
   var values, stats;
   var mean, std;
 
+/*
   for (var i=0; i<NUM_RUNS; i++) {
     output += generateReportSingleTableString(i);
   }
-
+*/
   for (var i=0; i<observer_array.length; i++) {
-    output += "Observer " + observer_array[i].id + " Outgoing: ";
+//    output += "Observer " + observer_array[i].id + " Outgoing: ";
 
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
       values = [];
       for (var run=0; run<NUM_RUNS; run++) {    
         values.push(observer_collection[run][i].outgoing[j]);
       }
+
       stats = Stats(values);
       mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
       std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
-      output += mean + " +/- " + std;
+
+//      output += mean + " +/- " + std;
+      output += mean;
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
     output += eol;
-
+/*
     output += "Observer " + observer_array[i].id + " Incoming: ";  
 
     for (var j=0; j<NUM_OBSERVATIONS; j++) {
@@ -381,8 +390,34 @@ function generateReportString() {
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
     output += eol;
+*/
   }
+  return output;
+}
 
+function generateErrorString() {
+  var output = "";  
+
+  var values, stats;
+  var mean, std;
+
+  for (var i=0; i<observer_array.length; i++) {
+//    output += "Observer " + observer_array[i].id + " Outgoing: ";
+
+    for (var j=0; j<NUM_OBSERVATIONS; j++) {
+      values = [];
+      for (var run=0; run<NUM_RUNS; run++) {    
+        values.push(observer_collection[run][i].outgoing[j]);
+      }
+
+      stats = Stats(values);
+      mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
+      std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
+      output += std;
+      output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
+    }
+    output += eol;
+  }
   return output;
 }
 
@@ -391,7 +426,10 @@ function generateReports()
   if (observer_array.length > 0 && !GENERATED_REPORT) {
 
     var blob = new Blob([generateReportString()], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, "report.txt")
+    saveAs(blob, "report.txt");
+
+    blob = new Blob([generateErrorString()], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "error.txt");    
 
     GENERATED_REPORT = true;
 
@@ -501,7 +539,7 @@ function removeObserver(_id)
   
   var removed_observer = observer_array.splice(index, 1);
   removed_observer[0].div.remove();
-  removed_observer[0].edge.observer.id = 0;
+  removed_observer[0].id = 0;
 
   for (o in observer_array) {
     observer_array[o].div.animate({'top': (45 + 175*o) + 'px'}, 500);
@@ -550,8 +588,13 @@ function reset_model_run() {
   tree_ants = [];
   food_nodes = [];
 
+  food_accumulator = 0.0;
+
+  var edge_array = [];
   for (o in observer_array) {
+    edge_array.push(observer_array[o].edge);
     observer_array[o].div.remove();
+    observer_array[o].id = 0;
   }
   observer_array = [];
   observer_id = 1;
@@ -575,7 +618,11 @@ function reset_model_run() {
   buildTree(root, DEPTH);
 
 //  autoAddObservers();
-  bfsAddObservers(root);
+//  bfsAddObservers(root);
+  for (e in edge_array) {
+    addObserver(root.getChild(edge_array[e].getPath()));
+  }
+
   root.initObservers();
 
   positionTree(root);
@@ -606,6 +653,8 @@ function reset(e)
 {
   food_nodes = [];
   tree_ants = [];
+
+  food_accumulator = 0.0;
 
   nearest_food = null;
   farthest_food = null;
@@ -783,7 +832,7 @@ function init()
   buildTree(root, DEPTH);
 
 //  autoAddObservers();
-  bfsAddObservers(root);
+//  bfsAddObservers(root);
   root.initObservers();
 
   positionTree(root);
