@@ -12,7 +12,7 @@ function Ant(_id, _dest) {
   this.first = (_dest == null);
   this.origin = root;
   this.dest = root;
-  this.dist = 0;
+  this.dist = PATH_INTERACTION ? 1.0 : 0.0;  // So PATH_INTERACTION at the nest works immediately
   this.returning = false;
   this.found_food = false;
   this.watching = false;
@@ -22,7 +22,9 @@ function Ant(_id, _dest) {
   this.color = (_dest != null) ? ((_dest.food > 0) ? _dest.foodColor : '#333') : '#333';
 
   // Make initial branching decision
-  this.branch();
+  if (!PATH_INTERACTION) {
+    this.branch();
+  }
 }
 
 
@@ -34,38 +36,38 @@ Ant.prototype.update = function()
   // Update the ant's position
   if (!this.watching) {
     this.dist += ANT_SPEED;
-  }
 
-  // If moving outward
-  if (!this.returning) {
-    if (this.dest.isRight) {
-      this.x = this.origin.out_right_x + this.dist * (this.dest.out_parent_x - this.origin.out_right_x);
-      this.y = this.origin.out_right_y + this.dist * (this.dest.out_parent_y - this.origin.out_right_y);
-    } else {
-      this.x = this.origin.out_left_x + this.dist * (this.dest.out_parent_x - this.origin.out_left_x);
-      this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
-    }
+    // If moving outward
+    if (!this.returning) {
+      if (this.dest.isRight) {
+        this.x = this.origin.out_right_x + this.dist * (this.dest.out_parent_x - this.origin.out_right_x);
+        this.y = this.origin.out_right_y + this.dist * (this.dest.out_parent_y - this.origin.out_right_y);
+      } else {
+        this.x = this.origin.out_left_x + this.dist * (this.dest.out_parent_x - this.origin.out_left_x);
+        this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
+      }
 
-    if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
-      this.dest.observer.addOutgoing();
-    }
-  } 
-  // If moving home
-  else {
-    if (this.origin.isRight) {
-      this.x = this.origin.in_parent_x + this.dist * (this.dest.in_right_x - this.origin.in_parent_x);
-      this.y = this.origin.in_parent_y + this.dist * (this.dest.in_right_y - this.origin.in_parent_y);
-    } else {
-      this.x = this.origin.in_parent_x + this.dist * (this.dest.in_left_x - this.origin.in_parent_x);
-      this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
-    }
-   
-    if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
-      this.origin.observer.addIncoming();
-    }
+      if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+        this.dest.observer.addOutgoing();
+      }
+    } 
+    // If moving home
+    else {
+      if (this.origin.isRight) {
+        this.x = this.origin.in_parent_x + this.dist * (this.dest.in_right_x - this.origin.in_parent_x);
+        this.y = this.origin.in_parent_y + this.dist * (this.dest.in_right_y - this.origin.in_parent_y);
+      } else {
+        this.x = this.origin.in_parent_x + this.dist * (this.dest.in_left_x - this.origin.in_parent_x);
+        this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
+      }
+     
+      if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+        this.origin.observer.addIncoming();
+      }
 
-    if (PHEROMONE && this.found_food) {
-      this.origin.pheromone++;
+      if (PHEROMONE && this.found_food) {
+        this.origin.pheromone++;
+      }
     }
   }
 
@@ -95,7 +97,7 @@ Ant.prototype.update = function()
         // If the ant didn't find food
         else {
           this.found_food = false;
-          this.color = '#333';
+          this.color = '#D33';
           this.first = true;
           this.path = [];
         }
@@ -103,16 +105,22 @@ Ant.prototype.update = function()
 
       // If the ant is at a branch point (choose branch)
       else {
-        if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {
+        // If Path Interaction is active and there is a decision to make
+        if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {// && this.dest.depth == 0) { // ROOT ONLY
           if (!this.watching) {
             this.watching = true;
             this.watching_time = 0; 
-            this.origin.addWatcher(this);
+//            this.origin.addWatcher(this);
+            this.dest.addWatcher(this);
           }
           else if (this.watching_time < WAIT_TIME) {
             this.watching_time++;
           }
           else {
+            this.watching = false;
+            this.watching_time = 0;
+//            this.origin.removeWatcher(this.id)
+            this.dest.removeWatcher(this.id)
             this.branch();
           }
         }
@@ -127,8 +135,7 @@ Ant.prototype.update = function()
       this.origin.ants -= 1;
       this.dist = 0;
       // If Path Interaction, send a singal to other ants
-      if (PATH_INTERACTION && this.dest.depth == 0) { // ONLY FOR ROOT
-        this.dist = 0;
+      if (PATH_INTERACTION) { // && this.dest.depth == 0) { // ONLY FOR ROOT
         this.dest.signalReturn(this.origin.isRight, this.found_food);
       }
       // If at a regular branch
@@ -139,6 +146,7 @@ Ant.prototype.update = function()
       }
       // If back at the nest
       else {
+        this.color = '#333';
         // Nest Interaction - determine to stop or bring a friend
         if (NEST_INTERACTION) {
           // If the ant found food there's a chance to send new ants out
@@ -159,7 +167,8 @@ Ant.prototype.update = function()
         // If you didn't return home, go out again
         this.returning = false;
         this.origin = root;
-        this.branch();
+//        this.branch();
+        this.dist = 1.0;
       }
     }
   }
@@ -178,7 +187,7 @@ Ant.prototype.update = function()
  */
 Ant.prototype.branch = function()
 {
-  var old_origin = this.origin;
+//  var old_origin = this.origin; // PATH_INTERACTION at root only
 
   this.dest.ants -= 1;
   this.origin = this.dest;
@@ -220,9 +229,7 @@ Ant.prototype.branch = function()
       }
     }
     // If ants can be recruited on the path
-    else if (PATH_INTERACTION) { // && old_origin.depth == 0) {  // ROOT ONLY
-      this.watching = false;
-      old_origin.removeWatcher(this.id);
+    else if (PATH_INTERACTION) { // && old_origin.depth == 0) { // ROOT ONLY
       if (WEIGHT_LINEAR) {
 	      if (this.right_count + this.left_count == 0) {
 	    	  d = Math.random() < 0.5;

@@ -115,6 +115,11 @@ function Node(_parent, _depth, _isRight)
       this.pheromone = this.pheromone * (1 - PHEROMONE_DECAY);
     }
 
+    if (this.observer != null) {
+      this.observer.update();
+    }
+
+    // Recursive Calls
     if (this.right != null) {
       this.right.update();
     }
@@ -147,10 +152,6 @@ function Node(_parent, _depth, _isRight)
         }
       }
     }
-
-    if (this.observer != null) {
-      this.observer.update();
-    }
   }
 
   this.initObservers = function() {
@@ -167,8 +168,8 @@ function Node(_parent, _depth, _isRight)
 
   this.signalReturn = function(_dir, _food) 
   {
-    for (var a=0; a<this.waiting_array.length; a++) {
-      if (_food) {
+    if (_food) {
+      for (var a=0; a<this.waiting_array.length; a++) {
         if (_dir) {
           this.waiting_array[a].right_count++;
         }
@@ -187,13 +188,16 @@ function Node(_parent, _depth, _isRight)
   this.removeWatcher = function(_id)
   {
     var temp = -1;
-    for (var i=0; i<this.waiting_array.length; i++) {
-	if (this.waiting_array[i].id == _id) {
-	    temp = i;
-	    break;
-	}
+    for (var i=this.waiting_array.length-1; i>=0; i--) {
+	    if (this.waiting_array[i].id == _id) {
+	        temp = i;
+	        break;
+	    }
     }  
-    this.waiting_array.splice(temp, 1);
+    if (temp >= 0) 
+      this.waiting_array.splice(temp, 1);
+    else
+      console.log('Error: removing ant from waiting list failed: ' + _id);
   }
 
   this.drawTree = function(_ctx)
@@ -243,8 +247,6 @@ function Node(_parent, _depth, _isRight)
 
   this.drawSelectedEdge = function(_ctx)
   {
-//    var t = date.getMilliseconds() / 1000.0;
-
     _ctx.lineWidth = BRANCH_RADIUS;
     _ctx.strokeStyle = "rgb(60, 160, 200)";
     _ctx.beginPath();

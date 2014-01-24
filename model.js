@@ -49,7 +49,7 @@ var NEST_TIME = 100000;
 var GIVE_PATH = false;
 
 // Path Interaction
-var WAIT_TIME = 10;
+var WAIT_TIME = 50;
 var WEIGHT_LINEAR = true;
 var WEIGHT_COUNT = false;
 
@@ -159,7 +159,7 @@ var eol = (function() {
 
 function buildTree(node, depth)
 {
-  if (node.parent != null ) {
+  if (node.parent != null) {
     node.observer = new Observer(0, node);
   }
 
@@ -590,9 +590,9 @@ function reset_model_run() {
 
   food_accumulator = 0.0;
 
-  var edge_array = [];
+  var path_array = [];
   for (o in observer_array) {
-    edge_array.push(observer_array[o].edge);
+    path_array.push(observer_array[o].edge.getPath());
     observer_array[o].div.remove();
     observer_array[o].id = 0;
   }
@@ -619,8 +619,8 @@ function reset_model_run() {
 
 //  autoAddObservers();
 //  bfsAddObservers(root);
-  for (e in edge_array) {
-    addObserver(root.getChild(edge_array[e].getPath()));
+  for (p in path_array) {
+    addObserver(root.getChild(path_array[p]));
   }
 
   root.initObservers();
@@ -752,7 +752,7 @@ function update()
       }
     }
     else {
-      setTimeout(update, 16);
+      setTimeout(update, 0);
     }
   }
 }
