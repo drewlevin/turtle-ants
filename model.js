@@ -29,7 +29,6 @@ var NEW_FOOD_PROB = 0.0000;
 // Ants
 var NEST_ANTS = 1000;
 var ANT_SPEED = 0.01;
-var INITIAL_PATH = false;
 var RETURN_TO_FOOD = false;
 var SWITCH_PATH = 0.001;
 var CAN_SMELL = false;
@@ -39,6 +38,7 @@ var SCENT_RADIUS = 1;
 var NEST_INTERACTION = false;
 var PATH_INTERACTION = false; // PATH will not work if pheromone is enabled
 var PHEROMONE = false;
+var INITIAL_PATH = false;
 
 // Nest Interaction
 var SEARCHING = 100;
@@ -58,6 +58,12 @@ var PHEROMONE_DECAY = 0.001;
 var SENSE_LINEAR = true;
 var SENSE_LOG = false;
 var SENSE_CONST = false;
+
+// Rate Equalization
+var BALANCED_POP = true;
+var RATE_NULL = true;
+var RATE_RANDOM = false;
+var RATE_REPULSE = false;
 
 // Graphic constants
 var NODE_RADIUS = 7;
@@ -838,8 +844,10 @@ function init()
   positionTree(root);
 
   if (INITIAL_PATH) {
-    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
-    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+//    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+//    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_a = nearest_food;
+    food_node_b = farthest_food;
     food_node_a.foodColor = '#C22';
     food_node_b.foodColor = '#22C';
 
@@ -905,6 +913,11 @@ function getInputValues()
   SENSE_LOG = $('#in_senseprofile').val() == "Log";
   SENSE_CONST = $('#in_senseprofile').val() == "Const";
 
+  BALANCED_POP = $('#in_balancedpop').is(':checked');
+  RATE_STAY = $('#in_ratestrategy').val() == "Stay";
+  RATE_RANDOM = $('#in_ratestrategy').val() == "Random";
+  RATE_REPULSE = $('#in_ratestrategy').val() == "Repulse";
+
   if (!NEST_INTERACTION) {
     $('#div_nestinteraction').stop().hide(250);
   } else {
@@ -919,6 +932,11 @@ function getInputValues()
     $('#div_pheromone').stop().hide(250);
   } else {
     $('#div_pheromone').stop().show(250);
+  }
+  if (!INITIAL_PATH) {
+    $('#div_rateeq').stop().hide(250);
+  } else {
+    $('#div_rateeq').stop().show(250);
   }
 }
 
@@ -964,6 +982,9 @@ function setInputValues()
   $('#in_decayrate').val(PHEROMONE_DECAY);
   $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : (SENSE_LOG ? "Log" : "Const"));
 
+  $('#in_balancedpop').attr('checked', BALANCED_POP);
+  $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Repulse" : "Stay"));
+
   $('#in_nestinteraction').attr('checked', NEST_INTERACTION);
   if (!NEST_INTERACTION) {
     $('#div_nestinteraction').stop().hide(250);
@@ -981,6 +1002,12 @@ function setInputValues()
     $('#div_pheromone').stop().hide(250);
   } else {
     $('#div_pheromone').stop().show(250);
+  }
+  $('#in_initialpaths').attr('checked', INITIAL_PATH);
+  if (!INITIAL_PATH) {
+    $('#div_rateeq').stop().hide(250);
+  } else {
+    $('#div_rateeq').stop().show(250);
   }
 }
 
@@ -1002,7 +1029,6 @@ $(document).ready(function() {
 
   $('#canvas').mousemove(function(e) { mouseMove(e); });
   $('#canvas').click(function(e) { mouseClick(e); });
-//  $('#canvas').click(function(e) { mouseClick(e); });
 
   $('#button_start').click(function(e) { pause(e) });
   $('#button_reset').click(function(e) { reset(e) });
@@ -1025,6 +1051,9 @@ $(document).ready(function() {
   });
   $('#span_pheromone').click(function() {
     $('#div_pheromone').stop().slideToggle(250);
+  });
+  $('#span_initialpaths').click(function() {
+    $('#div_rateeq').stop().slideToggle(250);
   });
 
   // Pheromone and Path Interaction are exclusive

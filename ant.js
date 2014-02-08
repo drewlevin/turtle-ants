@@ -9,7 +9,6 @@ function Ant(_id, _dest) {
   // Public Variables
   this.id = _id;
   this.path = (_dest == null) ? [] : _dest.getPath().slice(0); // slice for deep copy
-  this.first = (_dest == null);
   this.origin = root;
   this.dest = root;
   this.dist = PATH_INTERACTION ? 1.0 : 0.0;  // So PATH_INTERACTION at the nest works immediately
@@ -92,13 +91,11 @@ Ant.prototype.update = function()
           this.found_food = true;
           this.origin.food--;           
           this.color = this.origin.foodColor;
-          this.first = false;
         } 
         // If the ant didn't find food
         else {
           this.found_food = false;
           this.color = '#D33';
-          this.first = true;
           this.path = [];
         }
       } 
@@ -110,7 +107,6 @@ Ant.prototype.update = function()
           if (!this.watching) {
             this.watching = true;
             this.watching_time = 0; 
-//            this.origin.addWatcher(this);
             this.dest.addWatcher(this);
           }
           else if (this.watching_time < WAIT_TIME) {
@@ -119,7 +115,6 @@ Ant.prototype.update = function()
           else {
             this.watching = false;
             this.watching_time = 0;
-//            this.origin.removeWatcher(this.id)
             this.dest.removeWatcher(this.id)
             this.branch();
           }
@@ -167,7 +162,6 @@ Ant.prototype.update = function()
         // If you didn't return home, go out again
         this.returning = false;
         this.origin = root;
-//        this.branch();
         this.dist = 1.0;
       }
     }
@@ -192,8 +186,20 @@ Ant.prototype.branch = function()
   this.dest.ants -= 1;
   this.origin = this.dest;
 
+  // If rate equalization is checked, limit the search to two paths 
+  //  food_node_a and food_node_b
+  if (INITIAL_PATH) {
+    if (this.path.length > this.dest.depth) {
+      this.dest = this.path[this.dest.depth] ? this.dest.right : this.dest.left;
+    }
+    else {
+      d = Math.random() < 0.5;
+      this.dest = d ? this.dest.right : this.dest.left;
+      this.path.push(d);
+    }
+  }
   // If the ant has a destination in mind
-  if (!this.first && this.found_food && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
+  else if (this.found_food && Math.random() > SWITCH_PATH && !PHEROMONE && RETURN_TO_FOOD) {
     this.dest = this.path[this.dest.depth] ? this.dest.right : this.dest.left;
   }
   // If the ant needs to choose a new destination
@@ -272,19 +278,12 @@ Ant.prototype.branch = function()
     this.path.push(d);              
   }
 
-  this.dest.ants += 1;
-}
-
-/* draw
- *   Draws the ant on the canvas.  Assumes a global 'ctx' canvas variable
- */
-Ant.prototype.draw = function()
-{
-  ctx.fillStyle = this.color;
-  ctx.beginPath();
-  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
-  ctx.closePath();
-  ctx.fill();
+  if (this.dest == null) {
+console.log(this.path)
+  }
+  else {
+    this.dest.ants += 1;
+  }
 }
 
 /* sense
@@ -306,5 +305,18 @@ function sense(p)
   else if (SENSE_CONST) {
     return p;
   }
+}
+
+
+/* draw
+ *   Draws the ant on the canvas.  Assumes a global 'ctx' canvas variable
+ */
+Ant.prototype.draw = function()
+{
+  ctx.fillStyle = this.color;
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
+  ctx.closePath();
+  ctx.fill();
 }
 
