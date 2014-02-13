@@ -86,6 +86,18 @@ function Node(_parent, _depth, _isRight)
     }
   }
 
+  this.equals = function(_path) {
+    var eq = false;
+    if (this.path.length == _path.length) {
+      for (var i=this.path.length-1; i>=0; i--) {
+        if (this.path[i] != _path[i]) 
+          break;
+      }
+      eq = true;
+    }
+    return eq;
+  }
+
   this.getChild = function(_path) {
     if (_path.length == 0) {
       return this;

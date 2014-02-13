@@ -64,6 +64,7 @@ var BALANCED_POP = true;
 var RATE_NULL = true;
 var RATE_RANDOM = false;
 var RATE_REPULSE = false;
+var RATE_WAIT_TIME = 10;
 
 // Graphic constants
 var NODE_RADIUS = 7;
@@ -113,17 +114,26 @@ var nest = null;
 var food_accumulator = 0;
 var food_node_a;
 var food_node_b;
-var food_node_a_path;
-var food_node_b_path;
 
+var left_branch = true;
 var nearest_food = null;
+var nearest_food_left = null;
+var nearest_food_right = null;
 var farthest_food = null;
+var farthest_food_left = null;
+var farthest_food_right = null;
 var nearest_empty = null;
 var farthest_empty = null;
 var nearest_food_dist = 1e99;
+var nearest_food_left_dist = 1e99;
+var nearest_food_right_dist = 1e99;
 var farthest_food_dist = 0;
+var farthest_food_left_dist = 0;
+var farthest_food_right_dist = 0;
 var nearest_empty_dist = 1e99;
 var farthest_empty_dist = 0;
+var left_path = null;
+var right_path = null;
 
 var observer_array = [];
 var observer_collection = [];
@@ -168,13 +178,15 @@ function buildTree(node, depth)
   if (node.parent != null) {
     node.observer = new Observer(0, node);
   }
-
   // Double branch
   if (depth > DEPTH - FULL_TREE_DEPTH ) {
     node.right = new Node(node, node.depth + 1, true);
     node.left  = new Node(node, node.depth + 1, false);
 
+    if (node.parent == null) left_branch = false;
     buildTree(node.right, depth-1);
+
+    if (node.parent == null) left_branch = true;
     buildTree(node.left, depth-1);
 
     node.weight = node.right.weight + node.left.weight;
@@ -208,13 +220,22 @@ function buildTree(node, depth)
       node.food = MAX_FOOD;
       food_nodes.push(node);
 
-      if (dist < nearest_food_dist) {
-        nearest_food = node;
-        nearest_food_dist = dist;
+      if (dist < nearest_food_left_dist && left_branch) {
+        nearest_food_left = node;
+        nearest_food_left_dist = dist;
       }
-      if (dist >= farthest_food_dist) {
-        farthest_food = node;
-        farthest_food_dist = dist;
+      else if (dist < nearest_food_right_dist && !left_branch) {
+        nearest_food_right = node;
+        nearest_food_right_dist = dist;
+      }
+
+      if (dist >= farthest_food_left_dist && left_branch) {
+        farthest_food_left = node;
+        farthest_food_left_dist = dist;
+      }
+      else if (dist >= farthest_food_right_dist && !left_branch) {
+        farthest_food_right = node;
+        farthest_food_right_dist = dist;
       }
     }
     else {
@@ -227,6 +248,28 @@ function buildTree(node, depth)
         farthest_empty_dist = dist;
       }
     }
+  }
+  // Root node, pick the best near and far pair
+  if (node.parent == null) {
+    if (farthest_food_right_dist - nearest_food_left_dist > 
+        farthest_food_left_dist - nearest_food_right_dist) {
+      nearest_food = nearest_food_left;
+      nearest_food_dist = nearest_food_left_dist;
+      farthest_food = farthest_food_right;
+      farthest_food_dist = farthest_food_right_dist;
+      left_path = nearest_food;
+      right_path = farthest_food;
+    }
+    else {
+      nearest_food = nearest_food_right;
+      nearest_food_dist = nearest_food_right_dist;
+      farthest_food = farthest_food_left;
+      farthest_food_dist = farthest_food_left_dist;
+      right_path = nearest_food;
+      left_path = farthest_food;
+    }
+    nearest_food_dist--;
+    farthest_food_dist--;
   }
 }
 
@@ -606,11 +649,19 @@ function reset_model_run() {
   observer_id = 1;
 
   nearest_food = null;
+  nearest_food_left = null;
+  nearest_food_right = null;
   farthest_food = null;
+  farthest_food_left = null;
+  farthest_food_right = null;
   nearest_empty = null;
   farthest_empty = null;
-  nearest_food_dist = 99;
+  nearest_food_dist = 1e99;
+  nearest_food_left_dist = 1e99;
+  nearest_food_right_dist = 1e99;
   farthest_food_dist = 0;
+  farthest_food_left_dist = 0;
+  farthest_food_right_dist = 0;
   nearest_empty_dist = 99;
   farthest_empty_dist = 0;
 
@@ -634,8 +685,8 @@ function reset_model_run() {
   positionTree(root);
 
   if (INITIAL_PATH) {
-    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
-    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
+    food_node_a = nearest_food;
+    food_node_b = farthest_food;
     food_node_a.foodColor = '#C22';
     food_node_b.foodColor = '#22C';
 
@@ -663,11 +714,20 @@ function reset(e)
   food_accumulator = 0.0;
 
   nearest_food = null;
+  nearest_food_left = null;
+  nearest_food_right = null;
   farthest_food = null;
+  farthest_food_left = null;
+  farthest_food_right = null;
   nearest_empty = null;
   farthest_empty = null;
-  nearest_food_dist = 99;
+
+  nearest_food_dist = 1e99;
+  nearest_food_left_dist = 1e99;
+  nearest_food_right_dist = 1e99;
   farthest_food_dist = 0;
+  farthest_food_left_dist = 0;
+  farthest_food_right_dist = 0;
   nearest_empty_dist = 99;
   farthest_empty_dist = 0;
 
@@ -844,8 +904,6 @@ function init()
   positionTree(root);
 
   if (INITIAL_PATH) {
-//    food_node_a = food_nodes[Math.floor(Math.random() * food_nodes.length)];
-//    food_node_b = food_nodes[Math.floor(Math.random() * food_nodes.length)];
     food_node_a = nearest_food;
     food_node_b = farthest_food;
     food_node_a.foodColor = '#C22';
@@ -915,8 +973,8 @@ function getInputValues()
 
   BALANCED_POP = $('#in_balancedpop').is(':checked');
   RATE_STAY = $('#in_ratestrategy').val() == "Stay";
-  RATE_RANDOM = $('#in_ratestrategy').val() == "Random";
-  RATE_REPULSE = $('#in_ratestrategy').val() == "Repulse";
+  RATE_RANDOM = $('#in_ratestrategy').val() == "Rand";
+  RATE_REPULSE = $('#in_ratestrategy').val() == "Opp.";
 
   if (!NEST_INTERACTION) {
     $('#div_nestinteraction').stop().hide(250);
@@ -983,7 +1041,7 @@ function setInputValues()
   $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : (SENSE_LOG ? "Log" : "Const"));
 
   $('#in_balancedpop').attr('checked', BALANCED_POP);
-  $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Repulse" : "Stay"));
+  $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Opp." : "Stay"));
 
   $('#in_nestinteraction').attr('checked', NEST_INTERACTION);
   if (!NEST_INTERACTION) {

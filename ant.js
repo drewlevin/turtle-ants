@@ -9,6 +9,7 @@ function Ant(_id, _dest) {
   // Public Variables
   this.id = _id;
   this.path = (_dest == null) ? [] : _dest.getPath().slice(0); // slice for deep copy
+  this.first = true;
   this.origin = root;
   this.dest = root;
   this.dist = PATH_INTERACTION ? 1.0 : 0.0;  // So PATH_INTERACTION at the nest works immediately
@@ -89,21 +90,42 @@ Ant.prototype.update = function()
         // If the ant found food
         if (this.origin.food > 0) {
           this.found_food = true;
-          this.origin.food--;           
-          this.color = this.origin.foodColor;
+          if (!INITIAL_PATH) {
+            this.origin.food--;           
+            this.color = this.origin.foodColor;
+          }
         } 
         // If the ant didn't find food
         else {
           this.found_food = false;
-          this.color = '#D33';
-          this.path = [];
+          if (!INITIAL_PATH) {
+            this.color = '#D33';
+            this.path = [];
+          }
         }
       } 
 
       // If the ant is at a branch point (choose branch)
       else {
+        // If doing rete equalization AND at the nest, choose one of the two paths based on the strategy
+        if (INITIAL_PATH && this.dest.depth == 0 && RATE_REPULSE) {
+          if (!this.watching) {
+            this.watching = true;
+            this.watching_time = 0; 
+            this.dest.addWatcher(this);
+          }
+          else if (this.watching_time < RATE_WAIT_TIME) {
+            this.watching_time++;
+          }
+          else {
+            this.watching = false;
+            this.watching_time = 0;
+            this.dest.removeWatcher(this.id)
+            this.branch();
+          }
+        }
         // If Path Interaction is active and there is a decision to make
-        if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {// && this.dest.depth == 0) { // ROOT ONLY
+        else if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {// && this.dest.depth == 0) { // ROOT ONLY
           if (!this.watching) {
             this.watching = true;
             this.watching_time = 0; 
@@ -130,7 +152,7 @@ Ant.prototype.update = function()
       this.origin.ants -= 1;
       this.dist = 0;
       // If Path Interaction, send a singal to other ants
-      if (PATH_INTERACTION) { // && this.dest.depth == 0) { // ONLY FOR ROOT
+      if (PATH_INTERACTION || (INITIAL_PATH && RATE_REPULSE && this.dest.depth == 0)) { // && this.dest.depth == 0) { // ONLY FOR ROOT
         this.dest.signalReturn(this.origin.isRight, this.found_food);
       }
       // If at a regular branch
@@ -141,7 +163,9 @@ Ant.prototype.update = function()
       }
       // If back at the nest
       else {
-        this.color = '#333';
+        if (!INITIAL_PATH) {
+          this.color = '#333';
+        }
         // Nest Interaction - determine to stop or bring a friend
         if (NEST_INTERACTION) {
           // If the ant found food there's a chance to send new ants out
@@ -189,12 +213,49 @@ Ant.prototype.branch = function()
   // If rate equalization is checked, limit the search to two paths 
   //  food_node_a and food_node_b
   if (INITIAL_PATH) {
+    var d;
     if (this.path.length > this.dest.depth) {
+      if (this.dest.depth == 0 && !this.first) {
+        // If random rate equalization
+        if (RATE_RANDOM) {
+          this.path = Math.random() < 0.5 ? food_node_a.getPath().slice(0) : food_node_b.getPath().slice(0);
+        }
+        // If repulsive rate equalization
+        else if (RATE_REPULSE && this.right_count + this.left_count > 0 && !this.first) {
+          // If the ant went right previously, and then counted more ants coming back from the right, 
+          // go left with a probability linear to the number of ants 
+          proportion = this.right_count / (this.right_count + this.left_count);
+          if (proportion > 0.5 && 
+              this.path[0] &&
+              Math.random() < 2.0*(proportion - 0.5)) 
+          {
+            this.path = left_path.getPath().slice(0);
+          }
+          else if (proportion < 0.5 && 
+                  !this.path[0] &&
+                  Math.random() < 2.0*(1.0 - proportion - 0.5)) 
+          {
+            this.path = right_path.getPath().slice(0);
+          }
+        this.right_count = 0;
+        this.left_count = 0;
+    	  this.dist = 0;
+        }
+      }
+      this.first = false;
       this.dest = this.path[this.dest.depth] ? this.dest.right : this.dest.left;
     }
     else {
-      d = Math.random() < 0.5;
-      this.dest = d ? this.dest.right : this.dest.left;
+      if (this.dest.right != null && this.dest.left == null) {
+        d = true;    
+      }
+      else if (this.dest.right == null && this.dest.left != null) {
+        d = false;
+      }
+      else {
+        d = Math.random() < 0.5;
+      }
+      this.dest = d ? this.dest.right : this.dest.left;   
       this.path.push(d);
     }
   }
@@ -278,12 +339,7 @@ Ant.prototype.branch = function()
     this.path.push(d);              
   }
 
-  if (this.dest == null) {
-console.log(this.path)
-  }
-  else {
-    this.dest.ants += 1;
-  }
+  this.dest.ants += 1;
 }
 
 /* sense
