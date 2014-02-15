@@ -10,15 +10,27 @@ function Observer(_id, _edge) {
   var outgoing_bin = 0;
   var incoming_bin = 0;
 
+  var outgoing_red_bin = 0;
+  var outgoing_blue_bin = 0;
+
   var outgoing_length = 0;
   var incoming_length = 0;
   
+  var outgoing_red_length = 0;
+  var outgoing_blue_length = 0;
+
   var outgoing = [];
   var incoming = [];
   var outgoing_total = [];
   var incoming_total = [];
   var outgoing_smoothed = [];
   var incoming_smoothed = [];
+
+  var outgoing_red = [];
+  var outgoing_red = [];
+  var outgoing_blue = [];
+  var outgoing_red_total = [];
+  var outgoing_blue_total = [];
 
   this.init = function() 
   {
@@ -34,14 +46,33 @@ function Observer(_id, _edge) {
     incoming_total = [];
     outgoing_smoothed = [];
     incoming_smoothed = [];
+
+    outgoing_red_bin = 0;
+    outgoing_blue_bin = 0;
+
+    outgoing_red_length = 0;
+    outgoing_blue_length = 0;
+    
+    outgoing_red = [];
+    outgoing_blue = [];
+    outgoing_red_total = [];
+    outgoing_blue_total = [];
   }
 
-  this.addOutgoing = function()
+  this.addOutgoing = function(_color)
   {
+    if (INITIAL_PATH) {
+      if (_color == COLOR_A) {
+        outgoing_red_bin++;
+      }
+      else if (_color == COLOR_B) {
+        outgoing_blue_bin++;
+      }
+    }
     outgoing_bin++;
   }
 
-  this.addIncoming = function()
+  this.addIncoming = function(_color)
   {
     incoming_bin++;
   }
@@ -68,6 +99,18 @@ function Observer(_id, _edge) {
 
       incoming.push(incoming_point);
       incoming_length++;
+
+      if (INITIAL_PATH) {
+        var outgoing_point_red = [TIME, outgoing_red_bin];
+        var outgoing_point_blue = [TIME, outgoing_blue_bin];
+
+        outgoing_red.push(outgoing_point_red);
+        outgoing_blue.push(outgoing_point_blue);
+        outgoing_red_length++;
+        outgoing_blue_length++;
+        outgoing_red_bin = 0;
+        outgoing_blue_bin = 0;
+      }
 
       outgoing_total.push(outgoing_total_point);
       incoming_total.push(incoming_total_point);
@@ -141,6 +184,32 @@ function Observer(_id, _edge) {
     var acc = 0;
     for (var i=start_index; i<stop_index; i++) {
       acc += outgoing[i][1];
+    }
+    return acc;
+  }
+
+  this.getOutgoingRed = function(_start, _stop) { 
+    if (_start < BIN_SIZE || _stop > TIME) {
+      return 0;
+    }
+    var start_index = Math.floor(_start / BIN_SIZE)-1;
+    var stop_index = Math.floor(_stop / BIN_SIZE)-1;
+    var acc = 0;
+    for (var i=start_index; i<stop_index; i++) {
+      acc += outgoing_red[i][1];
+    }
+    return acc;
+  }
+
+  this.getOutgoingBlue = function(_start, _stop) { 
+    if (_start < BIN_SIZE || _stop > TIME) {
+      return 0;
+    }
+    var start_index = Math.floor(_start / BIN_SIZE)-1;
+    var stop_index = Math.floor(_stop / BIN_SIZE)-1;
+    var acc = 0;
+    for (var i=start_index; i<stop_index; i++) {
+      acc += outgoing_blue[i][1];
     }
     return acc;
   }

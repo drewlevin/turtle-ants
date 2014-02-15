@@ -36,39 +36,7 @@ Ant.prototype.update = function()
   // Update the ant's position
   if (!this.watching) {
     this.dist += ANT_SPEED;
-
-    // If moving outward
-    if (!this.returning) {
-      if (this.dest.isRight) {
-        this.x = this.origin.out_right_x + this.dist * (this.dest.out_parent_x - this.origin.out_right_x);
-        this.y = this.origin.out_right_y + this.dist * (this.dest.out_parent_y - this.origin.out_right_y);
-      } else {
-        this.x = this.origin.out_left_x + this.dist * (this.dest.out_parent_x - this.origin.out_left_x);
-        this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
-      }
-
-      if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
-        this.dest.observer.addOutgoing();
-      }
-    } 
-    // If moving home
-    else {
-      if (this.origin.isRight) {
-        this.x = this.origin.in_parent_x + this.dist * (this.dest.in_right_x - this.origin.in_parent_x);
-        this.y = this.origin.in_parent_y + this.dist * (this.dest.in_right_y - this.origin.in_parent_y);
-      } else {
-        this.x = this.origin.in_parent_x + this.dist * (this.dest.in_left_x - this.origin.in_parent_x);
-        this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
-      }
-     
-      if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
-        this.origin.observer.addIncoming();
-      }
-
-      if (PHEROMONE && this.found_food) {
-        this.origin.pheromone++;
-      }
-    }
+    this.setPosition()
   }
 
   // At a node - choose new destination
@@ -195,6 +163,46 @@ Ant.prototype.update = function()
   return false;
 }
 
+
+/* setPosition
+ *   Helper function for update.  Updates an ant's x and y coordinates given
+ *   the ant's origin, destination, and distance.
+ */
+Ant.prototype.setPosition = function()
+{
+  // If moving outward
+  if (!this.returning) {
+    if (this.dest.isRight) {
+      this.x = this.origin.out_right_x + this.dist * (this.dest.out_parent_x - this.origin.out_right_x);
+      this.y = this.origin.out_right_y + this.dist * (this.dest.out_parent_y - this.origin.out_right_y);
+    } else {
+      this.x = this.origin.out_left_x + this.dist * (this.dest.out_parent_x - this.origin.out_left_x);
+      this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
+    }
+
+    if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+      this.dest.observer.addOutgoing(this.color);
+    }
+  } 
+  // If moving home
+  else {
+    if (this.origin.isRight) {
+      this.x = this.origin.in_parent_x + this.dist * (this.dest.in_right_x - this.origin.in_parent_x);
+      this.y = this.origin.in_parent_y + this.dist * (this.dest.in_right_y - this.origin.in_parent_y);
+    } else {
+      this.x = this.origin.in_parent_x + this.dist * (this.dest.in_left_x - this.origin.in_parent_x);
+      this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
+    }
+   
+    if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+      this.origin.observer.addIncoming(this.color);
+    }
+
+    if (PHEROMONE && this.found_food) {
+      this.origin.pheromone++;
+    }
+  }
+}
 
 /* branch
  *   Helper function for update.  Updates an ant's destination information when an ant

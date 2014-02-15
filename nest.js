@@ -10,6 +10,11 @@ function Nest(_num_ants, _num_scouts)
   if (INITIAL_PATH)
     placeInitial();
 
+  function shuffle(o){ //v1.0
+      for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+      return o;
+  };
+
   function placeInitial()
   {
     var place_num_a;
@@ -50,6 +55,7 @@ function Nest(_num_ants, _num_scouts)
       ant.origin = origin;
       ant.dest = dest;
       ant.dist = pos - Math.floor(pos);
+      ant.setPosition();
       ant_index++;
 
       tree_ants.push(ant);
@@ -68,6 +74,7 @@ function Nest(_num_ants, _num_scouts)
       ant.dist = pos - Math.floor(pos);
       ant.found_food = true;
       ant.returning = true;
+      ant.setPosition();
       ant_index++;
 
       tree_ants.push(ant);
@@ -87,6 +94,7 @@ function Nest(_num_ants, _num_scouts)
       ant.origin = origin;
       ant.dest = dest;
       ant.dist = pos - Math.floor(pos);
+      ant.setPosition();
       ant_index++;
 
       tree_ants.push(ant);
@@ -105,10 +113,13 @@ function Nest(_num_ants, _num_scouts)
       ant.dist = pos - Math.floor(pos);
       ant.found_food = true;
       ant.returning = true;
+      ant.setPosition();
       ant_index++;
 
       tree_ants.push(ant);
     }
+
+    shuffle(tree_ants);
 
     num_scouts = 0;
     num_ants -= initial_ants;
