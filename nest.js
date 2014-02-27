@@ -27,14 +27,17 @@ function Nest(_num_ants, _num_scouts)
     // Total number of ants to place on the tree
     var initial_ants = NEST_INTERACTION ? num_scouts : num_ants;
 
-    // Get the ant densities for the two initial paths
+    var path_time_a = len_a / ANT_SPEED;
+    var path_time_b = len_b / ANT_SPEED;
+
+    // Get the ant populations for the two initial paths
     if (BALANCED_POP) {
-      place_num_a = initial_ants / 4;
-      place_num_b = initial_ants / 4;
+      place_num_a = initial_ants / 2;
+      place_num_b = initial_ants / 2;
     }
     else {
-      place_num_a = initial_ants / 6;
-      place_num_b = initial_ants / 3;
+      place_num_a = initial_ants / 3;
+      place_num_b = 2 * initial_ants / 3;
     }
 
     // Place the ants with a uniform distribution
@@ -43,80 +46,118 @@ function Nest(_num_ants, _num_scouts)
     var ant;
     // Place the path a ants
     for (var i=0; i<place_num_a; i++) {
-      // One Outgoing
-      pos = len_a * Math.random();
-      origin = root;
-      for (var j=0; j<pos-1; j++) {
-        origin = a_path[j] ? origin.right : origin.left;
+      group = Math.random();
+      pos = Math.random();
+      // Add to waiting at the nest group
+      if (group < RATE_WAIT_TIME / (RATE_WAIT_TIME + 2*path_time_a)) {
+        ant = new Ant(ant_index, food_node_a);
+        ant.origin = root;
+        ant.dest = root;
+        ant.dist = 1.0;
+        ant.setPosition();
+        ant.watching = true;
+        ant.watching_time = Math.floor(pos*RATE_WAIT_TIME);
+        root.addWatcher(ant);
+        ant_index++;
+
+        tree_ants.push(ant);
       }
-      dest = a_path[Math.floor(pos)] ? origin.right : origin.left;
+      // Add to outgoing group
+      else if (group < (RATE_WAIT_TIME+path_time_a) / (RATE_WAIT_TIME + 2*path_time_a)) {
+        pos *= len_a;
+        origin = root;
+        for (var j=0; j<pos-1; j++) {
+          origin = a_path[j] ? origin.right : origin.left;
+        }
+        dest = a_path[Math.floor(pos)] ? origin.right : origin.left;
 
-      ant = new Ant(ant_index, food_node_a);
-      ant.origin = origin;
-      ant.dest = dest;
-      ant.dist = pos - Math.floor(pos);
-      ant.setPosition();
-      ant_index++;
+        ant = new Ant(ant_index, food_node_a);
+        ant.origin = origin;
+        ant.dest = dest;
+        ant.dist = pos - Math.floor(pos);
+        ant.setPosition();
+        ant_index++;
 
-      tree_ants.push(ant);
-
-      // And one returning;
-      pos = len_a * Math.random();
-      dest = root;
-      for (var j=0; j<pos-1; j++) {
-        dest = a_path[j] ? dest.right : dest.left;
+        tree_ants.push(ant);
       }
-      origin = a_path[Math.floor(pos)] ? dest.right : dest.left;
+      // Add to incoming group
+      else {
+        pos *= len_a;
+        dest = root;
+        for (var j=0; j<pos-1; j++) {
+          dest = a_path[j] ? dest.right : dest.left;
+        }
+        origin = a_path[Math.floor(pos)] ? dest.right : dest.left;
 
-      ant = new Ant(ant_index, food_node_a);
-      ant.origin = origin;
-      ant.dest = dest;
-      ant.dist = pos - Math.floor(pos);
-      ant.found_food = true;
-      ant.returning = true;
-      ant.setPosition();
-      ant_index++;
+        ant = new Ant(ant_index, food_node_a);
+        ant.origin = origin;
+        ant.dest = dest;
+        ant.dist = pos - Math.floor(pos);
+        ant.found_food = true;
+        ant.returning = true;
+        ant.setPosition();
+        ant_index++;
 
-      tree_ants.push(ant);
+        tree_ants.push(ant);
+      }
     }
 
     // place the path b ants
     for (var i=0; i<place_num_b; i++) {
-      // One Outgoing
-      pos = len_b * Math.random();
-      origin = root;
-      for (var j=0; j<pos-1; j++) {
-        origin = b_path[j] ? origin.right : origin.left;
+      group = Math.random();
+      pos = Math.random();
+      // Add to waiting at the nest group
+      if (group < RATE_WAIT_TIME / (RATE_WAIT_TIME + 2*path_time_b)) {
+        ant = new Ant(ant_index, food_node_b);
+        ant.origin = root;
+        ant.dest = root;
+        ant.dist = 1.0;
+        ant.setPosition();
+        ant.watching = true;
+        ant.watching_time = Math.floor(pos*RATE_WAIT_TIME);
+        root.addWatcher(ant);
+        ant_index++;
+
+        tree_ants.push(ant);
       }
-      dest = b_path[Math.floor(pos)] ? origin.right : origin.left;
+      // Add to outgoing group
+      else if (group < (RATE_WAIT_TIME+path_time_b) / (RATE_WAIT_TIME + 2*path_time_b)) {
+        pos *= len_b;
+        origin = root;
+        for (var j=0; j<pos-1; j++) {
+          origin = b_path[j] ? origin.right : origin.left;
+        }
+        dest = b_path[Math.floor(pos)] ? origin.right : origin.left;
 
-      ant = new Ant(ant_index, food_node_b);
-      ant.origin = origin;
-      ant.dest = dest;
-      ant.dist = pos - Math.floor(pos);
-      ant.setPosition();
-      ant_index++;
+        ant = new Ant(ant_index, food_node_b);
+        ant.origin = origin;
+        ant.dest = dest;
+        ant.dist = pos - Math.floor(pos);
+        ant.setPosition();
+        ant_index++;
 
-      tree_ants.push(ant);
-
-      // And one returning;
-      pos = len_b * Math.random();
-      dest = root;
-      for (var j=0; j<pos-1; j++) {
-        dest = b_path[j] ? dest.right : dest.left;
+        tree_ants.push(ant);
       }
-      origin = b_path[Math.floor(pos)] ? dest.right : dest.left;
+      // Add to incoming group
+      else {
+        pos *= len_b;
+        dest = root;
+        for (var j=0; j<pos-1; j++) {
+          dest = b_path[j] ? dest.right : dest.left;
+        }
+        origin = b_path[Math.floor(pos)] ? dest.right : dest.left;
 
-      ant = new Ant(ant_index, food_node_b);
-      ant.origin = origin;
-      ant.dest = dest;
-      ant.dist = pos - Math.floor(pos);
-      ant.found_food = true;
-      ant.returning = true;
-      ant.setPosition();
-      ant_index++;
+        ant = new Ant(ant_index, food_node_b);
+        ant.origin = origin;
+        ant.dest = dest;
+        ant.dist = pos - Math.floor(pos);
+        ant.found_food = true;
+        ant.returning = true;
+        ant.setPosition();
+        ant_index++;
 
-      tree_ants.push(ant);
+        tree_ants.push(ant);
+      }
     }
 
     shuffle(tree_ants);

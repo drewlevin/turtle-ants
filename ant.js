@@ -230,20 +230,82 @@ Ant.prototype.branch = function()
         }
         // If repulsive rate equalization
         else if (RATE_REPULSE && this.right_count + this.left_count > 0 && !this.first) {
-          // If the ant went right previously, and then counted more ants coming back from the right, 
-          // go left with a probability linear to the number of ants 
-          proportion = this.right_count / (this.right_count + this.left_count);
-          if (proportion > 0.5 && 
-              this.path[0] &&
-              Math.random() < 2.0*(proportion - 0.5)) 
-          {
-            this.path = left_path.getPath().slice(0);
+          if (RATE_REPULSE_LINEAR) {
+            // If the ant went right previously, and then counted more ants coming back from the right, 
+            // go left with a probability linear to the number of ants 
+            proportion = this.right_count / (this.right_count + this.left_count);
+            if (proportion > 0.5 && 
+                this.path[0] &&
+                Math.random() < 2.0*(proportion - 0.5)) 
+            {
+              this.path = left_path.getPath().slice(0);
+            }
+            else if (proportion < 0.5 && 
+                    !this.path[0] &&
+                    Math.random() < 2.0*(1.0 - proportion - 0.5)) 
+            {
+              this.path = right_path.getPath().slice(0);
+            }
           }
-          else if (proportion < 0.5 && 
-                  !this.path[0] &&
-                  Math.random() < 2.0*(1.0 - proportion - 0.5)) 
-          {
-            this.path = right_path.getPath().slice(0);
+          else if (RATE_REPULSE_SIGMOID) {
+            proportion = this.right_count / (this.right_count + this.left_count);
+            if (proportion > 0.5 && 
+                this.path[0] &&
+                Math.random() < 1.0 / (1.0+Math.exp(-25.0*(proportion-0.75))))
+            {
+              this.path = left_path.getPath().slice(0);
+            }
+            else if (proportion < 0.5 && 
+                    !this.path[0] &&
+                    Math.random() < 1.0 / (1.0+Math.exp(-25.0*(-proportion+0.25))))
+            {
+              this.path = right_path.getPath().slice(0);
+            }
+
+          }
+          else if (RATE_REPULSE_STEP) {
+            proportion = this.right_count / (this.right_count + this.left_count);
+            if (proportion > 0.5 && this.path[0]) 
+            {
+              this.path = left_path.getPath().slice(0);
+            }
+            else if (proportion < 0.5 && !this.path[0]) 
+            {
+              this.path = right_path.getPath().slice(0);
+            }
+
+          }
+          else if (RATE_REPULSE_STEP2) {
+            proportion = this.right_count / (this.right_count + this.left_count);
+            if (proportion > 0.5 && 
+                this.path[0] &&
+                Math.random() < 0.5)
+            {
+              this.path = left_path.getPath().slice(0);
+            }
+            else if (proportion < 0.5 && 
+                    !this.path[0] &&
+                    Math.random() < 0.5) 
+            {
+              this.path = right_path.getPath().slice(0);
+            }
+
+          }
+          else if (RATE_REPULSE_STEP4) {
+            proportion = this.right_count / (this.right_count + this.left_count);
+            if (proportion > 0.5 && 
+                this.path[0] &&
+                Math.random() < 0.25) 
+            {
+              this.path = left_path.getPath().slice(0);
+            }
+            else if (proportion < 0.5 && 
+                    !this.path[0] &&
+                    Math.random() < 0.25) 
+            {
+              this.path = right_path.getPath().slice(0);
+            }
+
           }
         this.right_count = 0;
         this.left_count = 0;

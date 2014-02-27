@@ -64,6 +64,11 @@ var BALANCED_POP = true;
 var RATE_NULL = true;
 var RATE_RANDOM = false;
 var RATE_REPULSE = false;
+var RATE_REPULSE_LINEAR = true;
+var RATE_REPULSE_SIGMOID = false;
+var RATE_REPULSE_STEP = false;
+var RATE_REPULSE_STEP2 = false;
+var RATE_REPULSE_STEP4 = false;
 var RATE_WAIT_TIME = 20;
 
 // Graphic constants
@@ -836,7 +841,7 @@ function getInputValues()
   NEST_TIME = $('#in_nesttime').val();
   GIVE_PATH = $('#in_givepath').is(':checked');
 
-  WAIT_TIME = $('#in_waittime').val();
+  WAIT_TIME = Number($('#in_waittime').val());
   WEIGHT_LINEAR = $('#in_decisionweighting').val() == "Linear";
   WEIGHT_COUNT = $('#in_decisionweighting').val() == "Count";
 
@@ -849,6 +854,13 @@ function getInputValues()
   RATE_STAY = $('#in_ratestrategy').val() == "Stay";
   RATE_RANDOM = $('#in_ratestrategy').val() == "Rand";
   RATE_REPULSE = $('#in_ratestrategy').val() == "Opp.";
+  RATE_REPULSE_LINEAR = $('#in_oppprofile').val() == "Linear";
+  RATE_REPULSE_SIGMOID = $('#in_oppprofile').val() == "Sig";
+  RATE_REPULSE_STEP = $('#in_oppprofile').val() == "Step";
+  RATE_REPULSE_STEP2 = $('#in_oppprofile').val() == "Step2";
+  RATE_REPULSE_STEP4 = $('#in_oppprofile').val() == "Step4";
+  RATE_WAIT_TIME = Number($('#in_ratewait').val());
+
 
   if (!NEST_INTERACTION) {
     $('#div_nestinteraction').stop().hide(250);
@@ -916,6 +928,11 @@ function setInputValues()
 
   $('#in_balancedpop').attr('checked', BALANCED_POP);
   $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Opp." : "Stay"));
+  $('#in_oppprofile').val(RATE_REPULSE_LINEAR ? "Linear" : 
+                         (RATE_REPULSE_SIG ? "Sig" : 
+                         (RATE_REPULSE_STEP ? "Step" : 
+                         (RATE_REPULSE_STEP2 ? "Step2" : "Step4"))));
+  $('#in_ratewait').val(RATE_WAIT_TIME);
 
   $('#in_nestinteraction').attr('checked', NEST_INTERACTION);
   if (!NEST_INTERACTION) {
