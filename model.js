@@ -61,6 +61,7 @@ var SENSE_CONST = false;
 
 // Rate Equalization
 var BALANCED_POP = true;
+var BLUE_RATIO = 2;
 var RATE_NULL = true;
 var RATE_RANDOM = false;
 var RATE_REPULSE = false;
@@ -69,7 +70,7 @@ var RATE_REPULSE_SIGMOID = false;
 var RATE_REPULSE_STEP = false;
 var RATE_REPULSE_STEP2 = false;
 var RATE_REPULSE_STEP4 = false;
-var RATE_WAIT_TIME = 20;
+var RATE_WAIT_TIME = 60;
 
 // Graphic constants
 var NODE_RADIUS = 7;
@@ -146,13 +147,6 @@ var observer_array = [];
 var observer_collection = [];
 var observer_id = 1;
 var eye_icon = null;
-
-var eol = (function() {
-  var plat = navigator.platform.toLowerCase();
-  if (plat.indexOf('win') != -1) return "\r\n";
-  else if (plat.indexOf('mac') != -1) return "\r";
-  else return "\n";
-}()); 
 
 // Request Animation Frame Shim
 (function() {
@@ -851,6 +845,7 @@ function getInputValues()
   SENSE_CONST = $('#in_senseprofile').val() == "Const";
 
   BALANCED_POP = $('#in_balancedpop').is(':checked');
+  BLUE_RATIO = Number($('#in_blueratio').val());
   RATE_STAY = $('#in_ratestrategy').val() == "Stay";
   RATE_RANDOM = $('#in_ratestrategy').val() == "Rand";
   RATE_REPULSE = $('#in_ratestrategy').val() == "Opp.";
@@ -927,6 +922,7 @@ function setInputValues()
   $('#in_senseprofile').val(SENSE_LINEAR ? "Linear" : (SENSE_LOG ? "Log" : "Const"));
 
   $('#in_balancedpop').attr('checked', BALANCED_POP);
+  $('#in_blueratio').val(BLUE_RATIO);
   $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Opp." : "Stay"));
   $('#in_oppprofile').val(RATE_REPULSE_LINEAR ? "Linear" : 
                          (RATE_REPULSE_SIG ? "Sig" : 

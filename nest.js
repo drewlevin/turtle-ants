@@ -36,8 +36,8 @@ function Nest(_num_ants, _num_scouts)
       place_num_b = initial_ants / 2;
     }
     else {
-      place_num_a = initial_ants / 3;
-      place_num_b = 2 * initial_ants / 3;
+      place_num_a = initial_ants / (BLUE_RATIO + 1);
+      place_num_b = BLUE_RATIO * initial_ants / (BLUE_RATIO + 1);
     }
 
     // Place the ants with a uniform distribution

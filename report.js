@@ -1,3 +1,10 @@
+var eol = (function() {
+  var plat = navigator.platform.toLowerCase();
+  if (plat.indexOf('win') != -1) return "\r\n";
+  else if (plat.indexOf('mac') != -1) return "\r";
+  else return "\n";
+}()); 
+
 function generateReportSingleTableString(_run) {
   var output = "Run " + (_run+1) + eol;
   for (var i=0; i<observer_array.length; i++) {
@@ -41,7 +48,7 @@ function generateReportString() {
 
         stats = Stats(values);
         mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
-        std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
+        std = Math.floor((stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
 
         output += mean;
         output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
@@ -57,7 +64,7 @@ function generateReportString() {
 
         stats = Stats(values);
         mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
-        std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
+        std = Math.floor((stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
 
   //      output += mean + " +/- " + std;
         output += mean;
@@ -102,7 +109,7 @@ function generateErrorString() {
 
       stats = Stats(values);
       mean = Math.floor(stats.getArithmeticMean() * 100) / 100;
-      std = Math.floor((2 * stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
+      std = Math.floor((stats.getStandardDeviation() / Math.sqrt(NUM_RUNS))* 100) / 100;
       output += std;
       output += j == NUM_OBSERVATIONS-1 ? "" : ",  ";
     }
