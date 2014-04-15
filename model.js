@@ -27,7 +27,7 @@ var FOOD_DECAY = 0.0;
 var NEW_FOOD_PROB = 0.0000;
 
 // Ants
-var NEST_ANTS = 1000;
+var NEST_ANTS = 500;
 var ANT_SPEED = 0.01;
 var RETURN_TO_FOOD = false;
 var SWITCH_PATH = 0.001;
@@ -38,7 +38,7 @@ var SCENT_RADIUS = 1;
 var NEST_INTERACTION = false;
 var PATH_INTERACTION = false; // PATH will not work if pheromone is enabled
 var PHEROMONE = false;
-var INITIAL_PATH = false;
+var INITIAL_PATH = true;
 
 // Nest Interaction
 var SEARCHING = 100;
@@ -61,10 +61,10 @@ var SENSE_CONST = false;
 
 // Rate Equalization
 var BALANCED_POP = true;
-var BLUE_RATIO = 2;
-var RATE_NULL = true;
+var BLUE_RATIO = 4;
+var RATE_NULL = false;
 var RATE_RANDOM = false;
-var RATE_REPULSE = false;
+var RATE_REPULSE = true;
 var RATE_REPULSE_LINEAR = true;
 var RATE_REPULSE_SIGMOID = false;
 var RATE_REPULSE_STEP = false;
