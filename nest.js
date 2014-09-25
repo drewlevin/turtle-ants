@@ -44,6 +44,16 @@ function Nest(_num_ants, _num_scouts)
     var origin;
     var dest;
     var ant;
+
+var 
+  a_nest     = 0,
+  a_path_out = 0,
+  a_path_in  = 0,
+  b_nest     = 0,
+  b_path_out = 0,
+  b_path_in  = 0;
+
+  
     // Place the path a ants
     for (var i=0; i<place_num_a; i++) {
       group = Math.random();
@@ -61,6 +71,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+a_nest++;
       }
       // Add to outgoing group
       else if (group < (RATE_WAIT_TIME+path_time_a) / (RATE_WAIT_TIME + 2*path_time_a)) {
@@ -79,6 +90,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+a_path_out++
       }
       // Add to incoming group
       else {
@@ -99,6 +111,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+a_path_in++;
       }
     }
 
@@ -119,6 +132,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+b_nest++;
       }
       // Add to outgoing group
       else if (group < (RATE_WAIT_TIME+path_time_b) / (RATE_WAIT_TIME + 2*path_time_b)) {
@@ -137,6 +151,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+b_path_out++;
       }
       // Add to incoming group
       else {
@@ -157,6 +172,7 @@ function Nest(_num_ants, _num_scouts)
         ant_index++;
 
         tree_ants.push(ant);
+b_path_in++;
       }
     }
 
