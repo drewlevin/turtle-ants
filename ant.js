@@ -20,7 +20,7 @@ function Ant(_id, _dest) {
   this.left_count = 0; this.right_count = 0;
   this.x = 0; this.y = 0;
   this.color = (_dest != null) ? ((_dest.food > 0) ? _dest.foodColor : '#333') : '#333';
-
+  this.speed_mult = 1.0; // 0.5 * Math.random() + 0.75;
   // Make initial branching decision
   if (!PATH_INTERACTION) {
     this.branch();
@@ -31,38 +31,41 @@ function Ant(_id, _dest) {
 /* update
  *   Updates the Ant's position
  */
-Ant.prototype.update = function() 
+Ant.prototype.update = function()
 {
   // Update the ant's position
   if (!this.watching) {
-    this.dist += ANT_SPEED;
+    this.dist += ANT_SPEED*this.speed_mult;
     this.setPosition()
   }
 
   // At a node - choose new destination
-  if (this.dist >= 1) 
+  if (this.dist >= 1)
   {
     // If moving outward
-    if (!this.returning) 
+    if (!this.returning)
     {
       // If the ant is at a leaf (turn around)
-      if (this.dest.right == null && this.dest.left == null) 
+      if (this.dest.right == null && this.dest.left == null)
       {
         var temp_origin = this.dest;
 
-        this.returning = true;      
+        this.returning = true;
         this.dist = 0;
         this.dest = this.origin;
         this.origin = temp_origin;
+
+        total_trips++;
 
         // If the ant found food
         if (this.origin.food > 0) {
           this.found_food = true;
           if (!INITIAL_PATH) {
-            this.origin.food--;           
+            food_gathered++;
+            this.origin.food--;
             this.color = this.origin.foodColor;
           }
-        } 
+        }
         // If the ant didn't find food
         else {
           this.found_food = false;
@@ -71,7 +74,7 @@ Ant.prototype.update = function()
             this.path = [];
           }
         }
-      } 
+      }
 
       // If the ant is at a branch point (choose branch)
       else {
@@ -79,7 +82,7 @@ Ant.prototype.update = function()
         if (INITIAL_PATH && this.dest.depth == 0 && RATE_REPULSE) {
           if (!this.watching) {
             this.watching = true;
-            this.watching_time = 0; 
+            this.watching_time = 0;
             this.dest.addWatcher(this);
           }
           else if (this.watching_time < RATE_WAIT_TIME) {
@@ -96,7 +99,7 @@ Ant.prototype.update = function()
         else if (PATH_INTERACTION && this.dest.right != null && this.dest.left != null) {// && this.dest.depth == 0) { // ROOT ONLY
           if (!this.watching) {
             this.watching = true;
-            this.watching_time = 0; 
+            this.watching_time = 0;
             this.dest.addWatcher(this);
           }
           else if (this.watching_time < WAIT_TIME) {
@@ -114,7 +117,7 @@ Ant.prototype.update = function()
           this.branch();
         }
       }
-    } 
+    }
     // If moving home
     else {
       this.origin.ants -= 1;
@@ -158,7 +161,7 @@ Ant.prototype.update = function()
       }
     }
   }
-  
+
   // False means the ant is recirculating
   return false;
 }
@@ -180,10 +183,10 @@ Ant.prototype.setPosition = function()
       this.y = this.origin.out_left_y + this.dist * (this.dest.out_parent_y - this.origin.out_left_y);
     }
 
-    if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+    if (this.dest.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED*this.speed_mult) {
       this.dest.observer.addOutgoing(this.color);
     }
-  } 
+  }
   // If moving home
   else {
     if (this.origin.isRight) {
@@ -193,8 +196,8 @@ Ant.prototype.setPosition = function()
       this.x = this.origin.in_parent_x + this.dist * (this.dest.in_left_x - this.origin.in_parent_x);
       this.y = this.origin.in_parent_y + this.dist * (this.dest.in_left_y - this.origin.in_parent_y);
     }
-   
-    if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED) {
+
+    if (this.origin.observer != null && this.dist >= 0.5 && this.dist < 0.5 + ANT_SPEED*this.speed_mult) {
       this.origin.observer.addIncoming(this.color);
     }
 
@@ -218,7 +221,7 @@ Ant.prototype.branch = function()
   this.dest.ants -= 1;
   this.origin = this.dest;
 
-  // If rate equalization is checked, limit the search to two paths 
+  // If rate equalization is checked, limit the search to two paths
   //  food_node_a and food_node_b
   if (INITIAL_PATH) {
     var d;
@@ -231,31 +234,31 @@ Ant.prototype.branch = function()
         // If repulsive rate equalization
         else if (RATE_REPULSE && this.right_count + this.left_count > 0 && !this.first) {
           if (RATE_REPULSE_LINEAR) {
-            // If the ant went right previously, and then counted more ants coming back from the right, 
-            // go left with a probability linear to the number of ants 
+            // If the ant went right previously, and then counted more ants coming back from the right,
+            // go left with a probability linear to the number of ants
             proportion = this.right_count / (this.right_count + this.left_count);
-            if (proportion > 0.5 && 
+            if (proportion > 0.5 &&
                 this.path[0] &&
-                Math.random() < 2.0*(proportion - 0.5)) 
+                Math.random() < 2.0*(proportion - 0.5))
             {
               this.path = left_path.getPath().slice(0);
             }
-            else if (proportion < 0.5 && 
+            else if (proportion < 0.5 &&
                     !this.path[0] &&
-                    Math.random() < 2.0*(1.0 - proportion - 0.5)) 
+                    Math.random() < 2.0*(0.5 - proportion))
             {
               this.path = right_path.getPath().slice(0);
             }
           }
           else if (RATE_REPULSE_SIGMOID) {
             proportion = this.right_count / (this.right_count + this.left_count);
-            if (proportion > 0.5 && 
+            if (proportion > 0.5 &&
                 this.path[0] &&
                 Math.random() < 1.0 / (1.0+Math.exp(-25.0*(proportion-0.75))))
             {
               this.path = left_path.getPath().slice(0);
             }
-            else if (proportion < 0.5 && 
+            else if (proportion < 0.5 &&
                     !this.path[0] &&
                     Math.random() < 1.0 / (1.0+Math.exp(-25.0*(-proportion+0.25))))
             {
@@ -265,11 +268,11 @@ Ant.prototype.branch = function()
           }
           else if (RATE_REPULSE_STEP) {
             proportion = this.right_count / (this.right_count + this.left_count);
-            if (proportion > 0.5 && this.path[0]) 
+            if (proportion > 0.5 && this.path[0])
             {
               this.path = left_path.getPath().slice(0);
             }
-            else if (proportion < 0.5 && !this.path[0]) 
+            else if (proportion < 0.5 && !this.path[0])
             {
               this.path = right_path.getPath().slice(0);
             }
@@ -277,15 +280,15 @@ Ant.prototype.branch = function()
           }
           else if (RATE_REPULSE_STEP2) {
             proportion = this.right_count / (this.right_count + this.left_count);
-            if (proportion > 0.5 && 
+            if (proportion > 0.5 &&
                 this.path[0] &&
                 Math.random() < 0.5)
             {
               this.path = left_path.getPath().slice(0);
             }
-            else if (proportion < 0.5 && 
+            else if (proportion < 0.5 &&
                     !this.path[0] &&
-                    Math.random() < 0.5) 
+                    Math.random() < 0.5)
             {
               this.path = right_path.getPath().slice(0);
             }
@@ -293,15 +296,15 @@ Ant.prototype.branch = function()
           }
           else if (RATE_REPULSE_STEP4) {
             proportion = this.right_count / (this.right_count + this.left_count);
-            if (proportion > 0.5 && 
+            if (proportion > 0.5 &&
                 this.path[0] &&
-                Math.random() < 0.25) 
+                Math.random() < 0.25)
             {
               this.path = left_path.getPath().slice(0);
             }
-            else if (proportion < 0.5 && 
+            else if (proportion < 0.5 &&
                     !this.path[0] &&
-                    Math.random() < 0.25) 
+                    Math.random() < 0.25)
             {
               this.path = right_path.getPath().slice(0);
             }
@@ -317,7 +320,7 @@ Ant.prototype.branch = function()
     }
     else {
       if (this.dest.right != null && this.dest.left == null) {
-        d = true;    
+        d = true;
       }
       else if (this.dest.right == null && this.dest.left != null) {
         d = false;
@@ -325,7 +328,7 @@ Ant.prototype.branch = function()
       else {
         d = Math.random() < 0.5;
       }
-      this.dest = d ? this.dest.right : this.dest.left;   
+      this.dest = d ? this.dest.right : this.dest.left;
       this.path.push(d);
     }
   }
@@ -338,13 +341,13 @@ Ant.prototype.branch = function()
     var d;
 
     // If the ant is switching off its path, clear the excess path array
-    if (this.path.length > this.dest.depth) {  
+    if (this.path.length > this.dest.depth) {
       this.path.splice(this.dest.depth, this.path.length - this.dest.depth - 1);
     }
-    
+
     // If there's only one possible direction
     if (this.dest.right != null && this.dest.left == null) {
-      d = true;      
+      d = true;
     }
     else if (this.dest.right == null && this.dest.left != null) {
       d = false;
@@ -376,9 +379,9 @@ Ant.prototype.branch = function()
 	      }
       }
       else { // WEIGHT_COUNT
-        d = this.right_count > this.left_count ? 
-              true : 
-	            (this.left_count > this.right_count ? 
+        d = this.right_count > this.left_count ?
+              true :
+	            (this.left_count > this.right_count ?
 		             false :
                  Math.random() < 0.5);
       }
@@ -386,7 +389,7 @@ Ant.prototype.branch = function()
       this.left_count = 0;
   	  this.dist = 0;
     }
-    // If ants can smell food 
+    // If ants can smell food
     else if (CAN_SMELL) {
       var r = this.dest.right.scent;
       var l = this.dest.left.scent;
@@ -404,9 +407,9 @@ Ant.prototype.branch = function()
     else {
       d = Math.random() < 0.5;
     }
-    // Set the destination 
+    // Set the destination
     this.dest = d ? this.dest.right : this.dest.left;
-    this.path.push(d);              
+    this.path.push(d);
   }
 
   this.dest.ants += 1;
@@ -424,8 +427,8 @@ function sense(p)
   }
   // Logarithmic pheromone profile
   else if (SENSE_LOG) {
-//    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-14.0))))+1)*Math.log(p+1)/Math.log(2)+1; 
-    return Math.log(p+1)/Math.log(2)+1; 
+//    return ((-1/(1+Math.pow(2,-10*((Math.log(p+1)/Math.log(2))-14.0))))+1)*Math.log(p+1)/Math.log(2)+1;
+    return Math.log(p+1)/Math.log(2)+1;
   }
   // Only checks to see which side is larger
   else if (SENSE_CONST) {
@@ -441,7 +444,7 @@ Ant.prototype.draw = function()
 {
   ctx.fillStyle = this.color;
   ctx.beginPath();
-  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true); 
+  ctx.arc(this.x, this.y, ANT_RADIUS, 0, Math.PI*2, true);
   ctx.closePath();
   ctx.fill();
 }

@@ -11,20 +11,23 @@ var ANT_SEED = 'Ants!';
 var SHOW_OUTPUT = false;
 
 // Report Generation
-var SAVE_REPORT = false;
-var NUM_RUNS = 1;
-var NUM_OBSERVATIONS = 6;
+var SAVE_REPORT = true;
+var NUM_RUNS = 5;
+var NUM_OBSERVATIONS = 1;
 var OBSERVATION_RATE = 600;
-var OBSERVATION_TIME = 60;
+var OBSERVATION_TIME = 0;
+var BIN_SIZE = 10;
+var SMOOTH_LENGTH = 20;
 
 // Environment
-var DEPTH = 10;
+var DEPTH = 8;
 var FULL_TREE_DEPTH = 4;
 var CHILD_PROB = 0.5;
 var FOOD_PROB = 0.5;
 var MAX_FOOD = 1000;
 var FOOD_DECAY = 0.0;
 var NEW_FOOD_PROB = 0.0000;
+var CLUSTERED = false;
 
 // Ants
 var NEST_ANTS = 500;
@@ -92,13 +95,20 @@ var RUNNING = false;
 
 var GENERATED_REPORT = false;
 
-var PLOT_OPTIONS = 
-    {
-      xaxis: {tickSize: 100}, 
-      yaxis: {min: 0},
-      selection: {mode: "x"},
-      legend: {position: "nw" }
-    };
+var PLOT_OPTIONS = {
+  xaxis: {
+    tickSize: 100
+  },
+  yaxis: {
+    min: 0
+  },
+  selection: {
+    mode: "x"
+  },
+  legend: {
+    position: "nw"
+  }
+};
 
 
 var l = 35;
@@ -120,6 +130,7 @@ var tree_ants = [];
 var lymph_ants = [];
 var nest = null;
 var food_accumulator = 0;
+var food_counter = 0;
 var food_node_a;
 var food_node_b;
 
@@ -148,50 +159,56 @@ var observer_collection = [];
 var observer_id = 1;
 var eye_icon = null;
 
+var food_gathered = 0;
+var total_trips = 0;
+var food_gathered_array = [[]];
+var total_trips_array = [[]];
+
 // Request Animation Frame Shim
 (function() {
   var lastTime = 0;
   var vendors = ['ms', 'moz', 'webkit', 'o'];
-  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-      window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-      window.cancelRequestAnimationFrame = window[vendors[x]+
-        'CancelRequestAnimationFrame'];
+  for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+    window.cancelRequestAnimationFrame = window[vendors[x] +
+      'CancelRequestAnimationFrame'];
   }
 
   if (!window.requestAnimationFrame)
-      window.requestAnimationFrame = function(callback, element) {
-          var currTime = new Date().getTime();
-          var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-          var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
-            timeToCall);
-          lastTime = currTime + timeToCall;
-          return id;
-      };
+    window.requestAnimationFrame = function(callback, element) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function() {
+          callback(currTime + timeToCall);
+        },
+        timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
 
   if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = function(id) {
-          clearTimeout(id);
-      };
+    window.cancelAnimationFrame = function(id) {
+      clearTimeout(id);
+    };
 }())
 
-function buildTree(node, depth)
-{
+function buildTree(node, depth) {
   if (node.parent != null) {
     node.observer = new Observer(0, node);
   }
   // Double branch
-  if (depth > DEPTH - FULL_TREE_DEPTH ) {
+  if (depth > DEPTH - FULL_TREE_DEPTH) {
     node.right = new Node(node, node.depth + 1, true);
-    node.left  = new Node(node, node.depth + 1, false);
+    node.left = new Node(node, node.depth + 1, false);
 
     if (node.parent == null) left_branch = false;
-    buildTree(node.right, depth-1);
+    buildTree(node.right, depth - 1);
 
     if (node.parent == null) left_branch = true;
-    buildTree(node.left, depth-1);
+    buildTree(node.left, depth - 1);
 
     node.weight = node.right.weight + node.left.weight;
-  } 
+  }
   // Single or double branch
   else if (depth > 0) {
     node.weight = 1;
@@ -199,13 +216,13 @@ function buildTree(node, depth)
     // right child
     if (Math.random() < CHILD_PROB) {
       node.right = new Node(node, node.depth + 1, true);
-      buildTree(node.right, depth-1);
+      buildTree(node.right, depth - 1);
       node.weight += node.right.weight;
     }
     // left child
     if (Math.random() < CHILD_PROB) {
       node.left = new Node(node, node.depth + 1, false);
-      buildTree(node.left, depth-1);
+      buildTree(node.left, depth - 1);
       node.weight += node.left.weight;
     }
   }
@@ -213,8 +230,8 @@ function buildTree(node, depth)
   if (node.right == null && node.left == null) {
     food_accumulator += Number(FOOD_PROB);
     dist = DEPTH - depth + 1;
-    node.weight = 10; 
-//    if (Math.random() < FOOD_PROB) {
+    node.weight = 10;
+    //    if (Math.random() < FOOD_PROB) {
     if (food_accumulator >= 1) {
       food_accumulator -= 1.0;
 
@@ -224,8 +241,7 @@ function buildTree(node, depth)
       if (dist < nearest_food_left_dist && left_branch) {
         nearest_food_left = node;
         nearest_food_left_dist = dist;
-      }
-      else if (dist < nearest_food_right_dist && !left_branch) {
+      } else if (dist < nearest_food_right_dist && !left_branch) {
         nearest_food_right = node;
         nearest_food_right_dist = dist;
       }
@@ -233,13 +249,11 @@ function buildTree(node, depth)
       if (dist >= farthest_food_left_dist && left_branch) {
         farthest_food_left = node;
         farthest_food_left_dist = dist;
-      }
-      else if (dist >= farthest_food_right_dist && !left_branch) {
+      } else if (dist >= farthest_food_right_dist && !left_branch) {
         farthest_food_right = node;
         farthest_food_right_dist = dist;
       }
-    }
-    else {
+    } else {
       if (dist <= nearest_empty_dist) {
         nearest_empty = node;
         nearest_empty_dist = dist;
@@ -252,16 +266,15 @@ function buildTree(node, depth)
   }
   // Root node, pick the best near and far pair
   if (node.parent == null) {
-    if (farthest_food_right_dist - nearest_food_left_dist > 
-        farthest_food_left_dist - nearest_food_right_dist) {
+    if (farthest_food_right_dist - nearest_food_left_dist >
+      farthest_food_left_dist - nearest_food_right_dist) {
       nearest_food = nearest_food_left;
       nearest_food_dist = nearest_food_left_dist;
       farthest_food = farthest_food_right;
       farthest_food_dist = farthest_food_right_dist;
       left_path = nearest_food;
       right_path = farthest_food;
-    }
-    else {
+    } else {
       nearest_food = nearest_food_right;
       nearest_food_dist = nearest_food_right_dist;
       farthest_food = farthest_food_left;
@@ -274,10 +287,9 @@ function buildTree(node, depth)
   }
 }
 
-function positionTree(node)
-{
-  node.x = (WIDTH/2)  + (node.depth * l) * Math.cos(node.theta);
-  node.y = (HEIGHT/2) + (node.depth * l) * Math.sin(node.theta);
+function positionTree(node) {
+  node.x = (WIDTH / 2) + (node.depth * l) * Math.cos(node.theta);
+  node.y = (HEIGHT / 2) + (node.depth * l) * Math.sin(node.theta);
 
   var skew = BRANCH_WIDTH / 2 + ANT_RADIUS;
 
@@ -289,23 +301,22 @@ function positionTree(node)
       right_proportion = node.right.weight / (node.right.weight + node.left.weight);
     }
 
-    node.right.theta = node.theta - node.width * (1-right_proportion) / 2;
+    node.right.theta = node.theta - node.width * (1 - right_proportion) / 2;
     node.right.width = node.width * right_proportion;
 
     positionTree(node.right);
 
     // Ignore the root for the parent positions
     var theta;
-    if (node.parent != null)
-    {
-      theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+    if (node.parent != null) {
+      theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI / 2;
       node.out_parent_x = node.x + skew * Math.cos(theta);
       node.out_parent_y = node.y + skew * Math.sin(theta);
       node.in_parent_x = node.x - skew * Math.cos(theta);
       node.in_parent_y = node.y - skew * Math.sin(theta);
     }
-    
-    theta = Math.atan2(node.right.y - node.y, node.right.x - node.x) + Math.PI/2;
+
+    theta = Math.atan2(node.right.y - node.y, node.right.x - node.x) + Math.PI / 2;
     node.out_right_x = node.x + skew * Math.cos(theta);
     node.out_right_y = node.y + skew * Math.sin(theta);
     node.in_right_x = node.x - skew * Math.cos(theta);
@@ -320,23 +331,22 @@ function positionTree(node)
       left_proportion = node.left.weight / (node.right.weight + node.left.weight);
     }
 
-    node.left.theta = node.theta + node.width * (1-left_proportion) / 2;  
+    node.left.theta = node.theta + node.width * (1 - left_proportion) / 2;
     node.left.width = node.width * left_proportion;
-  
+
     positionTree(node.left);
 
     // Ignore the root for the parent positions
     var theta;
-    if (node.parent != null)
-    {
-      theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+    if (node.parent != null) {
+      theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI / 2;
       node.out_parent_x = node.x + skew * Math.cos(theta);
       node.out_parent_y = node.y + skew * Math.sin(theta);
       node.in_parent_x = node.x - skew * Math.cos(theta);
       node.in_parent_y = node.y - skew * Math.sin(theta);
     }
-    
-    theta = Math.atan2(node.left.y - node.y, node.left.x - node.x) + Math.PI/2;
+
+    theta = Math.atan2(node.left.y - node.y, node.left.x - node.x) + Math.PI / 2;
     node.out_left_x = node.x + skew * Math.cos(theta);
     node.out_left_y = node.y + skew * Math.sin(theta);
     node.in_left_x = node.x - skew * Math.cos(theta);
@@ -345,7 +355,7 @@ function positionTree(node)
 
   // Leaf
   if (node.right == null && node.left == null && node.parent != null) {
-    var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+    var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI / 2;
     node.out_parent_x = node.x + skew * Math.cos(theta);
     node.out_parent_y = node.y + skew * Math.sin(theta);
     node.in_parent_x = node.x - skew * Math.cos(theta);
@@ -353,7 +363,7 @@ function positionTree(node)
   }
 
   if (node.parent != null) {
-    var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI/2;
+    var theta = Math.atan2(node.y - node.parent.y, node.x - node.parent.x) + Math.PI / 2;
     if (node.isRight) {
       node.text_x = (node.x + node.parent.x) / 2 - (3 * skew * Math.cos(theta));
       node.text_y = (node.y + node.parent.y) / 2 - (3 * skew * Math.sin(theta));
@@ -368,7 +378,7 @@ function positionTree(node)
     node.observation_x1 = mid_x + (OBSERVATION_LENGTH / 2.0) * Math.cos(theta);
     node.observation_y1 = mid_y + (OBSERVATION_LENGTH / 2.0) * Math.sin(theta);
     node.observation_x2 = mid_x - (OBSERVATION_LENGTH / 2.0) * Math.cos(theta);
-    node.observation_y2 = mid_y - (OBSERVATION_LENGTH / 2.0) * Math.sin(theta);    
+    node.observation_y2 = mid_y - (OBSERVATION_LENGTH / 2.0) * Math.sin(theta);
   }
 
   picker.addNode(node);
@@ -380,8 +390,7 @@ function autoAddObservers() {
   if (INITIAL_POPULATION) {
     addObserver(food_node_a);
     addObserver(food_node_b);
-  }
-  else {
+  } else {
     addObserver(nearest_food);
     addObserver(farthest_food);
     addObserver(nearest_empty);
@@ -402,20 +411,18 @@ function bfsAddObservers(_node) {
       if (temp.food > 0) {
         addObserver(temp);
       }
-    }
-    else {
+    } else {
       if (temp.left != null) {
         bfs_queue.push(temp.left);
       }
       if (temp.right != null) {
         bfs_queue.push(temp.right);
       }
-    }    
+    }
   }
 }
 
-function addObserver(_edge) 
-{
+function addObserver(_edge) {
   if (_edge.observer.id == 0) {
     _edge.observer.id = observer_id;
     observer_id++;
@@ -426,8 +433,7 @@ function addObserver(_edge)
   }
 }
 
-function removeObserver(_id)
-{
+function removeObserver(_id) {
   var index = 0;
   for (o in observer_array) {
     if (_id == observer_array[o].id) {
@@ -435,18 +441,19 @@ function removeObserver(_id)
       break;
     }
   }
-  
+
   var removed_observer = observer_array.splice(index, 1);
   removed_observer[0].div.remove();
   removed_observer[0].id = 0;
 
   for (o in observer_array) {
-    observer_array[o].div.animate({'top': (45 + 175*o) + 'px'}, 500);
+    observer_array[o].div.animate({
+      'top': (45 + 175 * o) + 'px'
+    }, 500);
   }
 }
 
-function mouseMove(e)
-{
+function mouseMove(e) {
   var off = $("#canvas").offset();
   var x = e.pageX - off.left;
   var y = e.pageY - off.top;
@@ -459,30 +466,26 @@ function mouseMove(e)
   }
 }
 
-function mouseClick(e)
-{
+function mouseClick(e) {
   if (hover_edge != null) {
     if (hover_edge.observer.id == 0) {
       addObserver(hover_edge);
-    }
-    else {
+    } else {
       removeObserver(hover_edge.observer.id);
     }
   }
 }
 
-function apply_changes(e)
-{
+function apply_changes(e) {
   getInputValues();
   reset(e);
 }
 
-function revert(e)
-{
+function revert(e) {
   setInputValues();
 }
 
-function reset_model_run() {  
+function reset_model_run() {
 
   tree_ants = [];
   food_nodes = [];
@@ -490,7 +493,7 @@ function reset_model_run() {
   food_accumulator = 0.0;
 
   var path_array = [];
-  for (o in observer_array) {
+  for (var o in observer_array) {
     path_array.push(observer_array[o].edge.getPath());
     observer_array[o].div.remove();
     observer_array[o].id = 0;
@@ -515,6 +518,9 @@ function reset_model_run() {
   nearest_empty_dist = 99;
   farthest_empty_dist = 0;
 
+  total_trips = 0;
+  food_gathered = 0;
+
   GENERATED_REPORT = false;
 
   Math.seedrandom(TREE_SEED);
@@ -524,8 +530,8 @@ function reset_model_run() {
 
   buildTree(root, DEPTH);
 
-//  autoAddObservers();
-//  bfsAddObservers(root);
+  //  autoAddObservers();
+  //  bfsAddObservers(root);
   for (p in path_array) {
     addObserver(root.getChild(path_array[p]));
   }
@@ -556,8 +562,7 @@ function reset_model_run() {
   update();
 }
 
-function reset(e)
-{
+function reset(e) {
   food_nodes = [];
   tree_ants = [];
 
@@ -581,6 +586,12 @@ function reset(e)
   nearest_empty_dist = 99;
   farthest_empty_dist = 0;
 
+  total_trips = 0;
+  food_gathered = 0;
+
+  total_trips_array = [[]];
+  food_gathered_array = [[]];
+
   total_runs = 0;
 
   static_canvas = document.createElement('canvas');
@@ -588,22 +599,26 @@ function reset(e)
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
 
-  for (o in observer_array) {
+  for (var o in observer_array) {
     observer_array[o].div.remove();
   }
   observer_collection = [];
   observer_array = [];
   observer_id = 1;
 
-  var child_array = $('#report').contents().each(function(i,v) { $(this).remove(); });
-  $('#report').css({'visibility': 'hidden', 'height': '0px'});
+  var child_array = $('#report').contents().each(function(i, v) {
+    $(this).remove();
+  });
+  $('#report').css({
+    'visibility': 'hidden',
+    'height': '0px'
+  });
   GENERATED_REPORT = false;
 
   init();
 }
 
-function pause(e) 
-{
+function pause(e) {
   if (RUNNING) {
     RUNNING = false;
     $('#button_start').html("Start");
@@ -615,89 +630,101 @@ function pause(e)
   }
 }
 
-function update()
-{
+function update() {
   if (RUNNING) {
     TIME++;
 
     nest.update();
     root.update();
 
-    for (a in tree_ants) {
+    // Update the individual ants
+    for (var a in tree_ants) {
       if (tree_ants[a].update()) {
         tree_ants.splice(a, 1);
       }
     }
 
-    if (SAVE_REPORT && NUM_OBSERVATIONS > 0 && 
-        TIME >= NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) 
-    {
-      var collection = [];
-      for (var i=0; i<observer_array.length; i++) {
-        if (INITIAL_PATH) {
-          var observer_red = {};
-          var observer_blue = {};
-          var outgoing_red = [];
-          var outgoing_blue = [];
+    // If the current model run is continuing
+    if (TIME < NUM_OBSERVATIONS * OBSERVATION_RATE + OBSERVATION_TIME) {
+      if (SAVE_REPORT && (TIME % BIN_SIZE) === 0) {
+        total_trips_array[total_runs].push(total_trips);
+        food_gathered_array[total_runs].push(food_gathered);
+      }
 
-          observer_red.id = observer_array[i].id;
-          observer_blue.id = observer_array[i].id;
+      setTimeout(update, 0);
+    }
+    // If the current model run has completed
+    else {
+      // If there are observers on the branches, compile the data
+      if (SAVE_REPORT) {
+        if (NUM_OBSERVATIONS > 0) {
+          var collection = [];
+          for (var i = 0; i < observer_array.length; i++) {
+            if (INITIAL_PATH) {
+              var observer_red = {};
+              var observer_blue = {};
+              var outgoing_red = [];
+              var outgoing_blue = [];
 
-          for (var j=0; j<NUM_OBSERVATIONS; j++) {
-            outgoing_red.push(observer_array[i].getOutgoingRed(OBSERVATION_RATE*(j+1), 
-                                                             OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
-            outgoing_blue.push(observer_array[i].getOutgoingBlue(OBSERVATION_RATE*(j+1), 
-                                                             OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
+              observer_red.id = observer_array[i].id;
+              observer_blue.id = observer_array[i].id;
+
+              for (var j = 0; j < NUM_OBSERVATIONS; j++) {
+                outgoing_red.push(observer_array[i].getOutgoingRed(OBSERVATION_RATE * (j + 1),
+                  OBSERVATION_RATE * (j + 1) + OBSERVATION_TIME));
+                outgoing_blue.push(observer_array[i].getOutgoingBlue(OBSERVATION_RATE * (j + 1),
+                  OBSERVATION_RATE * (j + 1) + OBSERVATION_TIME));
+              }
+              observer_red.outgoing = outgoing_red;
+              observer_blue.outgoing = outgoing_blue;
+
+              collection.push(observer_red);
+              collection.push(observer_blue);
+            } else {
+              var observer = {};
+              var incoming = [];
+              var outgoing = [];
+
+              observer.id = observer_array[i].id;
+
+              for (var j = 0; j < NUM_OBSERVATIONS; j++) {
+                incoming.push(observer_array[i].getIncomingCount(OBSERVATION_RATE * (j + 1),
+                  OBSERVATION_RATE * (j + 1) + OBSERVATION_TIME));
+                outgoing.push(observer_array[i].getOutgoingCount(OBSERVATION_RATE * (j + 1),
+                  OBSERVATION_RATE * (j + 1) + OBSERVATION_TIME));
+              }
+              observer.incoming = incoming;
+              observer.outgoing = outgoing;
+
+              collection.push(observer);
+            }
           }
-          observer_red.outgoing = outgoing_red;
-          observer_blue.outgoing = outgoing_blue;
+          observer_collection.push(collection);
+        }
 
-          collection.push(observer_red);
-          collection.push(observer_blue);
+        total_runs++;
+
+        if (total_runs == NUM_RUNS) {
+          RUNNING = false;
+          $('#button_start').html("Start");
+          generateReports();
         }
         else {
-          var observer = {};
-          var incoming = [];
-          var outgoing = [];
 
-          observer.id = observer_array[i].id;
+          total_trips_array.push([]);
+          food_gathered_array.push([]);
 
-          for (var j=0; j<NUM_OBSERVATIONS; j++) {
-            incoming.push(observer_array[i].getIncomingCount(OBSERVATION_RATE*(j+1), 
-                                                             OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
-            outgoing.push(observer_array[i].getOutgoingCount(OBSERVATION_RATE*(j+1), 
-                                                             OBSERVATION_RATE*(j+1)+OBSERVATION_TIME));
-          }
-          observer.incoming = incoming;
-          observer.outgoing = outgoing;
+          ANT_SEED = root_ant_seed + '_' + total_runs;
+          $('#in_antseed').val(ANT_SEED);
 
-          collection.push(observer);
+          reset_model_run();
         }
-      }       
-      observer_collection.push(collection);
-
-      total_runs++;
-
-      if (total_runs == NUM_RUNS) {
-        RUNNING = false;
-        $('#button_start').html("Start");
-        generateReports();
       }
-      else {
-        ANT_SEED = root_ant_seed + '_' + total_runs;
-        $('#in_antseed').val(ANT_SEED);
-        
-        reset_model_run();
-      }
-    }
-    else {
-      setTimeout(update, 0);
     }
   }
 }
 
-function render()
-{
+function render() {
   if (RUNNING) {
     requestAnimationFrame(render);
   }
@@ -709,38 +736,41 @@ function render()
   ctx.fillStyle = '#222';
   ctx.font = 'bold 20px courier';
   ctx.fillText('Time: ' + Math.floor(TIME / 1), 10, 20);
-  ctx.fillText('Run: ' + Number(Math.min(NUM_RUNS, total_runs+1)), 620, 20);
+  ctx.fillText('Run: ' + Number(Math.min(NUM_RUNS, total_runs + 1)), 620, 20);
 
-//  for (n in food_nodes) {
-//    food_nodes[n].draw();
-//  }
-//  picker.draw();
+  //  for (n in food_nodes) {
+  //    food_nodes[n].draw();
+  //  }
+  //  picker.draw();
 
   root.draw();
-  
+
   if (hover_node != null)
     hover_node.drawSelected(ctx);
   else if (hover_edge != null)
     hover_edge.drawSelectedEdge(ctx);
 
-  for (a in tree_ants) {
+  for (var a in tree_ants) {
     tree_ants[a].draw();
   }
 
   nest.draw();
 
   if (SHOW_OUTPUT) {
-    for (o in observer_array) {
-      $.plot(observer_array[o].flot, 
-             [ { label: 'Outgoing', data: observer_array[o].getOutgoingTotal(50) } , 
-               { label: 'Incoming', data: observer_array[o].getIncomingTotal(50) } ] , 
-             PLOT_OPTIONS);
+    for (var o in observer_array) {
+      $.plot(observer_array[o].flot, [{
+          label: 'Outgoing',
+          data: observer_array[o].getOutgoingTotal(50)
+        }, {
+          label: 'Incoming',
+          data: observer_array[o].getIncomingTotal(50)
+        }],
+        PLOT_OPTIONS);
     }
   }
 }
 
-function init_pheromones(amount, node, path)
-{
+function init_pheromones(amount, node, path) {
   if (node.right != null && node.left != null) {
     if (path[0]) {
       node.right.pheromone = amount;
@@ -756,8 +786,7 @@ function init_pheromones(amount, node, path)
   }
 }
 
-function init()
-{
+function init() {
   RUNNING = false;
   $('#button_start').html("Start");
 
@@ -770,8 +799,8 @@ function init()
 
   buildTree(root, DEPTH);
 
-//  autoAddObservers();
-//  bfsAddObservers(root);
+  //  autoAddObservers();
+  //  bfsAddObservers(root);
   root.initObservers();
 
   positionTree(root);
@@ -797,13 +826,12 @@ function init()
   render();
 }
 
-function getInputValues()
-{
-  TREE_SEED =  $('#in_treeseed').val();
-  ANT_SEED =  $('#in_antseed').val();
+function getInputValues() {
+  TREE_SEED = $('#in_treeseed').val();
+  ANT_SEED = $('#in_antseed').val();
 
   SAVE_REPORT = $('#in_savereport').is(':checked');
-  NUM_RUNS =  Number($('#in_numruns').val());
+  NUM_RUNS = Number($('#in_numruns').val());
   NUM_OBSERVATIONS = Number($('#in_observations').val());
   OBSERVATION_RATE = Number($('#in_obsrate').val());
   OBSERVATION_TIME = Number($('#in_obslength').val());
@@ -815,6 +843,7 @@ function getInputValues()
   MAX_FOOD = $('#in_foodamount').val();
   FOOD_DECAY = $('#in_fooddecay').val();
   NEW_FOOD_PROB = $('#in_newfoodprob').val();
+  CLUSTERED = $('#in_clustered').is(':checked');
 
   NEST_ANTS = $('#in_population').val();
   ANT_SPEED = Number($('#in_speed').val());
@@ -879,8 +908,7 @@ function getInputValues()
   }
 }
 
-function setInputValues()
-{
+function setInputValues() {
   $('#in_output').attr('checked', SHOW_OUTPUT);
 
   $('#in_treeseed').val(TREE_SEED);
@@ -899,6 +927,7 @@ function setInputValues()
   $('#in_foodamount').val(MAX_FOOD);
   $('#in_fooddecay').val(FOOD_DECAY);
   $('#in_newfoodprob').val(NEW_FOOD_PROB);
+  $('#in_clustered').attr('checked', CLUSTERED);
 
   $('#in_population').val(NEST_ANTS);
   $('#in_speed').val(ANT_SPEED);
@@ -924,10 +953,10 @@ function setInputValues()
   $('#in_balancedpop').attr('checked', BALANCED_POP);
   $('#in_blueratio').val(BLUE_RATIO);
   $('#in_ratestrategy').val(RATE_RANDOM ? "Rand" : (RATE_REPULSE ? "Opp." : "Stay"));
-  $('#in_oppprofile').val(RATE_REPULSE_LINEAR ? "Linear" : 
-                         (RATE_REPULSE_SIG ? "Sig" : 
-                         (RATE_REPULSE_STEP ? "Step" : 
-                         (RATE_REPULSE_STEP2 ? "Step2" : "Step4"))));
+  $('#in_oppprofile').val(RATE_REPULSE_LINEAR ? "Linear" :
+    (RATE_REPULSE_SIG ? "Sig" :
+      (RATE_REPULSE_STEP ? "Step" :
+        (RATE_REPULSE_STEP2 ? "Step2" : "Step4"))));
   $('#in_ratewait').val(RATE_WAIT_TIME);
 
   $('#in_nestinteraction').attr('checked', NEST_INTERACTION);
@@ -956,29 +985,41 @@ function setInputValues()
   }
 }
 
-$(document).ready(function() {  
+$(document).ready(function() {
 
   // Do this first
   WIDTH = $("#canvas").width();
   HEIGHT = $("#canvas").height();
 
   ctx = $('#canvas')[0].getContext("2d");
- 
+
   static_canvas = document.createElement('canvas');
   static_canvas.width = WIDTH;
   static_canvas.height = HEIGHT;
   static_ctx = static_canvas.getContext('2d');
-  
+
   eye_icon = new Image();
   eye_icon.src = 'img/eye.png';
 
-  $('#canvas').mousemove(function(e) { mouseMove(e); });
-  $('#canvas').click(function(e) { mouseClick(e); });
+  $('#canvas').mousemove(function(e) {
+    mouseMove(e);
+  });
+  $('#canvas').click(function(e) {
+    mouseClick(e);
+  });
 
-  $('#button_start').click(function(e) { pause(e) });
-  $('#button_reset').click(function(e) { reset(e) });
-  $('#button_revert').click(function(e) { revert(e) });
-  $('#button_apply').click(function(e) { apply_changes(e) });
+  $('#button_start').click(function(e) {
+    pause(e)
+  });
+  $('#button_reset').click(function(e) {
+    reset(e)
+  });
+  $('#button_revert').click(function(e) {
+    revert(e)
+  });
+  $('#button_apply').click(function(e) {
+    apply_changes(e)
+  });
 
   $('#lgnd_environment').click(function() {
     $('#div_environment').stop().slideToggle(250);
@@ -1024,27 +1065,27 @@ $(document).ready(function() {
       $('#in_givepath').attr('checked', false);
     }
   });
-  
+
   $('#in_output').click(function() {
     SHOW_OUTPUT = $(this).is(':checked');
     if (SHOW_OUTPUT) {
       for (o in observer_array) {
         observer_array[o].div.appendTo('#output');
       }
-    }
-    else {
+    } else {
       for (o in observer_array) {
         observer_array[o].div.detach();
       }
     }
-  });  
+  });
 
   setInputValues();
 
   pos = $('#canvas').position();
-  $('<div id="documentation"></div>').css( 
-      { "top": (pos.top + 50) + "px", "left": (pos.left + 435) + "px"}
-     ).prependTo($('#main_container'));
+  $('<div id="documentation"></div>').css({
+    "top": (pos.top + 50) + "px",
+    "left": (pos.left + 435) + "px"
+  }).prependTo($('#main_container'));
 
   $('.hoverdoc').hover(
     function() {
@@ -1052,11 +1093,11 @@ $(document).ready(function() {
       element = $(this).next().children('select, input');
       $('#documentation').html(getDescription(element));
       $('#documentation').css("top", pos.top);
-      $('#documentation').stop(true,true).fadeIn(150);
-    } ,
+      $('#documentation').stop(true, true).fadeIn(150);
+    },
     function() {
       $('#documentation').css("top", pos.top);
-      $('#documentation').stop(true,true).fadeOut(150);
+      $('#documentation').stop(true, true).fadeOut(150);
     });
 
   init();
