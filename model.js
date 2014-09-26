@@ -41,7 +41,7 @@ var SCENT_RADIUS = 1;
 var NEST_INTERACTION = false;
 var PATH_INTERACTION = false; // PATH will not work if pheromone is enabled
 var PHEROMONE = false;
-var INITIAL_PATH = true;
+var INITIAL_PATH = false;
 
 // Nest Interaction
 var SEARCHING = 100;
@@ -130,7 +130,7 @@ var tree_ants = [];
 var lymph_ants = [];
 var nest = null;
 var food_accumulator = 0;
-var food_counter = 0;
+var cluster_size = Math.floor(expected_leaves() * FOOD_PROB);
 var food_node_a;
 var food_node_b;
 
@@ -192,6 +192,12 @@ var total_trips_array = [[]];
     };
 }())
 
+function expected_leaves() {
+  return Math.floor(
+    Math.pow(2, FULL_TREE_DEPTH) * Math.pow(1+(CHILD_PROB*CHILD_PROB), DEPTH-FULL_TREE_DEPTH)
+  );
+}
+
 function buildTree(node, depth) {
   if (node.parent != null) {
     node.observer = new Observer(0, node);
@@ -232,8 +238,11 @@ function buildTree(node, depth) {
     dist = DEPTH - depth + 1;
     node.weight = 10;
     //    if (Math.random() < FOOD_PROB) {
-    if (food_accumulator >= 1) {
+    if ((!CLUSTERED && food_accumulator >= 1 )||
+        (CLUSTERED && cluster_size > 0)) {
+
       food_accumulator -= 1.0;
+      cluster_size--;
 
       node.food = MAX_FOOD;
       food_nodes.push(node);
@@ -521,6 +530,8 @@ function reset_model_run() {
   total_trips = 0;
   food_gathered = 0;
 
+  cluster_size = Math.floor(expected_leaves() * FOOD_PROB);
+
   GENERATED_REPORT = false;
 
   Math.seedrandom(TREE_SEED);
@@ -588,6 +599,8 @@ function reset(e) {
 
   total_trips = 0;
   food_gathered = 0;
+
+  cluster_size = Math.floor(expected_leaves() * FOOD_PROB);
 
   total_trips_array = [[]];
   food_gathered_array = [[]];
