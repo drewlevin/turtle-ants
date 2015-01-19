@@ -4,29 +4,44 @@
 <head>
   <title>Ant Simulation</title>
   <meta charset="UTF-8"></meta>
-  <link href="ants.css" rel="stylesheet" type="text/css" />
-  <script id="jquery" src="jquery-1.8.2.min.js" type="text/javascript"></script>
-  <script id="flot" src="jquery.flot.min.js" type="text/javascript"></script>
-  <script id="blob" src="Blob.js" type="text/javascript"></script>
-  <script id="save" src="FileSaver.js" type="text/javascript"></script>
-  <script id="random" src="random.js" type="text/javascript"></script>
-  <script id="stats" src="stats.js" type="text/javascript"></script>
-  <script id="scr_obs" src="observer.js" type="text/javascript"></script>
-  <script id="scr_node" src="node.js" type="text/javascript"></script>
-  <script id="scr_quad" src="quad.js" type="text/javascript"></script>
-  <script id="scr_nest" src="nest.js" type="text/javascript"></script>
-  <script id="scr_ant" src="ant.js" type="text/javascript"></script>
-  <script id="scr_report" src="report.js" type="text/javascript"></script>
-  <script id="scr_model" src="model.js" type="text/javascript"></script>
-  <script id="scr_tool" src="tooltips.js" type="text/javascript"></script>
+  <link href="css/ants.css" rel="stylesheet" type="text/css" />
+
+  <!-- Third Party Code -->
+  <script id="jquery" src="src/lib/jquery-1.8.2.min.js" type="text/javascript"></script>
+  <script id="blob"   src="src/lib/Blob.js"             type="text/javascript"></script>
+  <script id="save"   src="src/lib/FileSaver.js"        type="text/javascript"></script>
+  <script id="random" src="src/lib/random.js"           type="text/javascript"></script>
+  <script id="stats"  src="src/lib/stats.js"            type="text/javascript"></script>
+
+  <!-- Ant Code -->
+  <script id="scr_root"       src="src/ants.js"          type="text/javascript"></script>
+  <script id="scr_tool"       src="src/ants.tooltips.js" type="text/javascript"></script>
+  <script id="scr_params"     src="src/ants.params.js"   type="text/javascript"></script>
+  <script id="src_consts"     src="src/ants.consts.js"   type="text/javascript"></script>
+  <script id="src_report"     src="src/ants.report.js"   type="text/javascript"></script>
+
+  <script id="scr_model"      src="src/ants.model.js"          type="text/javascript"></script>
+  <script id="scr_modelant"   src="src/ants.model.ant.js"      type="text/javascript"></script>
+  <script id="scr_modelnode"  src="src/ants.model.node.js"     type="text/javascript"></script>
+  <script id="scr_modelnest"  src="src/ants.model.nest.js"     type="text/javascript"></script>
+  <script id="scr_modelobs"   src="src/ants.model.observer.js" type="text/javascript"></script>
+
+  <script id="src_view"       src="src/ants.view.js"        type="text/javascript"></script>
+  <script id="src_viewant"    src="src/ants.view.ants.js"   type="text/javascript"></script>
+  <script id="src_viewnode"   src="src/ants.view.node.js"   type="text/javascript"></script>
+  <script id="src_viewnest"   src="src/ants.view.nest.js"   type="text/javascript"></script>
+  <script id="src_viewquad"   src="src/ants.view.quad.js"   type="text/javascript"></script>
+
+  <!-- document.ready() code entry point-->
+  <script>
+    $(function () { Ants.config($('#canvas'), $('#button_start'),
+                                $('#button_reset'), $('#button_revert'),
+                                $('#button_apply')); });
+  </script>
 </head>
 
 <body>
   <div id="main_container">
-    <div id="output">
-      <h2>
-        <input id="in_output" type="checkbox" />Output</h2>
-    </div>
     <canvas id="canvas" width="720px" height="720px" border="2px solid black"></canvas>
     <button class="button-left" id="button_start">Start</button>
     <button class="button-right" id="button_reset">Reset</button>
@@ -193,8 +208,7 @@
       <fieldset id="fs_nestinteraction">
         <legend>
           <input id="in_nestinteraction" type="checkbox" />
-          <span id="span_nestinteraction">Nest Interaction</input>
-          </span>
+          <span id="span_nestinteraction">Nest Interaction</span>
         </legend>
         <div id="div_nestinteraction">
           <ul>
@@ -228,14 +242,13 @@
                 <input id="in_givepath" type="checkbox" />
               </span>
             </li>
-            <ul>
+          </ul>
         </div>
       </fieldset>
       <fieldset id="fs_pathinteraction">
         <legend>
           <input id="in_pathinteraction" type="checkbox" />
-          <span id="span_pathinteraction">Path Interaction</input>
-          </span>
+          <span id="span_pathinteraction">Path Interaction</span>
         </legend>
         <div id="div_pathinteraction">
           <ul>
@@ -280,64 +293,14 @@
                 </select>
               </span>
             </li>
-            <ul>
+          </ul>
         </div>
       </fieldset>
-      <fieldset id="fs_rateeq">
-        <legend>
-          <input id="in_initialpaths" type="checkbox" />
-          <span id="span_initialpaths">Rate Eq.</span>
-        </legend>
-        <div id="div_rateeq">
-          <ul>
-            <li>
-              <span class="span-left hoverdoc">Balanced Pop.:</span>
-              <span class="span-right">
-                <input id="in_balancedpop" type="checkbox" />
-              </span>
-            </li>
-            <li>
-              <span class="span-left hoverdoc">Blue Ratio:</span>
-              <span class="span-right">
-                <input id="in_blueratio" type="number" min=1 step=1 />
-              </span>
-            </li>
-            <li>
-              <span class="span-left hoverdoc">Strategy:</span>
-              <span class="span-right">
-                <select id="in_ratestrategy">
-                  <option>Stay</option>
-                  <option>Rand</option>
-                  <option>Opp.</option>
-                </select>
-              </span>
-            </li>
-            <li>
-              <span class="span-left hoverdoc">Opp. Profile:</span>
-              <span class="span-right">
-                <select id="in_oppprofile">
-                  <option>Linear</option>
-                  <option>Sig</option>
-                  <option>Step</option>
-                  <option>Step2</option>
-                  <option>Step4</option>
-                </select>
-              </span>
-            </li>
-            <li>
-              <span class="span-left hoverdoc">Wait Time:</span>
-              <span class="span-right">
-                <input id="in_ratewait" type="number" min=0 step=1 />
-              </span>
-            </li>
-            <ul>
-        </div>
-      </fieldset>
-      </div>
-      <button class="button-full" id="button_apply">Apply Changes</button>
-      <button class="button-full" id="button_revert">Revert to Set Values</button>
-      <div id="report"></div>
-      </div>
+    </div>
+    <button class="button-full" id="button_apply">Apply Changes</button>
+    <button class="button-full" id="button_revert">Revert to Set Values</button>
+    <div id="report"></div>
+  </div>
 </body>
 
 </html>

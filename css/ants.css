@@ -1,7 +1,7 @@
 #main_container {
   position: relative;
   display: block;
-  width: 1200px;
+  width: 960px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -10,20 +10,10 @@
   position: absolute;
   border: 2px solid black;
   margin: 0px;
-  width: 1200px;
+  width: 960px;
   top: 730px;
   height: 0px;
   visibility: hidden;
-}
-
-#output {
-  position: absolute;
-  border: 2px solid green;
-  display: inline-block;
-  overflow: auto;
-  margin: 0px;
-  width: 230px;
-  height: 720px;
 }
 
 #canvas {
@@ -31,7 +21,7 @@
   border: 2px solid black;
   display: inline-block;
   margin: 0px;
-  left: 240px;
+  left: 0px;
 }
 
 #documentation {
@@ -48,7 +38,7 @@
 #controls {
   position: absolute;
   top: 40px;
-  left: 970px;
+  left: 730px;
   height: 600px;
   width: 220px;
   border: 2px solid green;
@@ -60,25 +50,25 @@
 
 #button_start {
   position: absolute;
-  left: 975px;
+  left: 735px;
   top: 5px;
 }
 
 #button_reset {
   position: absolute;
-  left: 1085px;
+  left: 845px;
   top: 5px;
 }
 
 #button_apply {
   position: absolute;
-  left: 970px;
+  left: 730px;
   top: 655px;
 }
 
 #button_revert {
   position: absolute;
-  left: 970px;
+  left: 730px;
   top: 690px;
 }
 
@@ -101,12 +91,12 @@ ul {
   border: 0px;
   margin: 0px;
   padding: 0px;
-} 
+}
 
 li {
   list-style: none;
   font-weight: normal;
-  
+
 }
 
 fieldset {
@@ -201,25 +191,6 @@ h2 {
 h4 {
   margin: 0px;
   text-align: center;
-}
-
-.img_close {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 3px;
-  left: 180px;
-  margin: 0px;
-  padding: 0px;
-}
-
-.output_container {
-  position: absolute;
-  width: 215px;
-  height: 175px;
-  left: 0px;
-  margin: 0px;
-  padding: 0px;
 }
 
 .flot {
